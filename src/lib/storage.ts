@@ -36,14 +36,14 @@ if (hasR2) {
   const r2AccessKeyId = (process.env.R2_ACCESS_KEY_ID || '').replace(/^["']|["']$/g, '');
   const r2SecretAccessKey = (process.env.R2_SECRET_ACCESS_KEY || '').replace(/^["']|["']$/g, '');
   const accessKeyLength = r2AccessKeyId.length;
-  
+
   console.log('R2 Configuration:', {
     accountId: process.env.R2_ACCOUNT_ID ? 'set' : 'missing',
     accessKeyLength,
     bucket: process.env.R2_BUCKET,
     hasPublicUrl: !!process.env.R2_PUBLIC_URL,
   });
-  
+
   if (accessKeyLength !== 32) {
     console.error(`⚠️ R2_ACCESS_KEY_ID has length ${accessKeyLength}, should be 32 characters. Cloudflare R2 access keys must be exactly 32 characters. Falling back to local filesystem storage.`);
     console.error('Current R2_ACCESS_KEY_ID value (first 10 chars):', r2AccessKeyId.substring(0, 10) + '...');
@@ -83,9 +83,9 @@ if (hasR2) {
 }
 
 // Prioritize R2 bucket when R2 is configured, otherwise use AWS or fallback
-const BUCKET_NAME = isR2Config 
-  ? (process.env.R2_BUCKET || 'luxor-auto-sale-images')
-  : (process.env.AWS_S3_BUCKET || process.env.R2_BUCKET || 'luxor-auto-sale-images');
+const BUCKET_NAME = isR2Config
+  ? (process.env.R2_BUCKET || 'auto-sale-images')
+  : (process.env.AWS_S3_BUCKET || process.env.R2_BUCKET || 'auto-sale-images');
 
 // Use R2 public URL when R2 is configured
 const PUBLIC_URL = isR2Config
@@ -217,13 +217,13 @@ async function processImageBuffer(
   const safeFilename = sanitizeFilename(originalFilename);
   const ext = safeFilename.split('.').pop()?.toLowerCase() || 'jpg';
   const isHeic = ext === 'heic' || ext === 'heif';
-  
+
   try {
     // Create Sharp instance and auto-rotate based on EXIF
     let processedImage = sharp(buffer, {
       failOnError: false, // Don't fail on unsupported formats, we'll catch it
     }).rotate(); // Auto-rotate based on EXIF orientation
-    
+
     // For HEIC/HEIF, convert to JPEG first (Sharp may or may not support it)
     if (isHeic) {
       try {
@@ -235,7 +235,7 @@ async function processImageBuffer(
         );
       }
     }
-    
+
     // Resize if needed
     if (sizeConfig.width) {
       processedImage = processedImage.resize(sizeConfig.width, sizeConfig.height, {
@@ -244,11 +244,11 @@ async function processImageBuffer(
         kernel: sharp.kernel.lanczos3,
       });
     }
-    
+
     let processedBuffer: Buffer;
     let contentType: string;
     let fileExtension: string;
-    
+
     if (sizeName === 'thumbnail') {
       // Use WebP for thumbnails
       processedBuffer = await processedImage
@@ -258,7 +258,7 @@ async function processImageBuffer(
       fileExtension = 'webp';
     } else if (sizeName === 'original' && !isHeic && (ext === 'png')) {
       // Keep PNG format for original if it was PNG
-      processedBuffer = await processedImage.png({ 
+      processedBuffer = await processedImage.png({
         quality: sizeConfig.quality || 98,
         compressionLevel: 6
       }).toBuffer();
@@ -266,7 +266,7 @@ async function processImageBuffer(
       fileExtension = 'png';
     } else {
       // Convert to JPEG for everything else (including HEIC conversions)
-      processedBuffer = await processedImage.jpeg({ 
+      processedBuffer = await processedImage.jpeg({
         quality: sizeConfig.quality || 98,
         progressive: true,
         mozjpeg: true
@@ -274,7 +274,7 @@ async function processImageBuffer(
       contentType = 'image/jpeg';
       fileExtension = 'jpg';
     }
-    
+
     return { buffer: processedBuffer, contentType, fileExtension };
   } catch (error: any) {
     // Provide helpful error messages
@@ -307,7 +307,7 @@ async function uploadToLocalFilesystem(
   const fileId = nanoid(10);
   const basePath = `vehicles/${vehicleId}/${fileId}`;
   const uploadDir = join(process.cwd(), 'public', 'uploads', 'vehicles', vehicleId);
-  
+
   // Create directory if it doesn't exist
   await mkdir(uploadDir, { recursive: true });
 
@@ -315,7 +315,7 @@ async function uploadToLocalFilesystem(
 
   // Only upload thumbnail and large sizes for local storage (to save space)
   const sizesToProcess = ['thumbnail', 'large'];
-  
+
   for (const sizeName of sizesToProcess) {
     const sizeConfig = IMAGE_SIZES[sizeName as keyof typeof IMAGE_SIZES];
     try {
@@ -325,11 +325,11 @@ async function uploadToLocalFilesystem(
         sizeConfig,
         sizeName
       );
-      
+
       const fileName = `${fileId}-${sizeName}.${fileExtension}`;
       const filePath = join(uploadDir, fileName);
       await writeFile(filePath, processedBuffer);
-      
+
       // Return relative URL
       urls[sizeName] = `/uploads/vehicles/${vehicleId}/${fileName}`;
     } catch (err: any) {
@@ -354,13 +354,13 @@ export async function uploadVehicleImage(
   mimeType?: string | null
 ): Promise<{ urls: Record<string, string>; primaryUrl: string }> {
   assertStorageConfigured();
-  
+
   // Use local filesystem if S3/R2 is not configured
   if (!s3Client) {
     console.log('S3/R2 not configured, using local filesystem');
     return uploadToLocalFilesystem(buffer, vehicleId, originalFilename, mimeType);
   }
-  
+
   const normalized = await normalizeImageInput(buffer, originalFilename, mimeType);
   const workingBuffer = normalized.buffer;
   const workingFilename = normalized.filename;
@@ -386,7 +386,7 @@ export async function uploadVehicleImage(
         sizeConfig,
         sizeName
       );
-      
+
       const key = `${basePath}-${sizeName}.${fileExtension}`;
       await s3Client.send(
         new PutObjectCommand({
@@ -499,19 +499,19 @@ export function validateImageFile(file: File): { valid: boolean; error?: string 
   // Get file extension from name (more reliable on mobile)
   const fileName = file.name.toLowerCase();
   const hasValidExtension = allowedExtensions.some(ext => fileName.endsWith(ext));
-  
+
   // Check MIME type (may be empty or different on some mobile devices)
   const mimeType = file.type?.toLowerCase() || '';
   const hasValidMimeType = !file.type || allowedTypes.includes(mimeType);
-  
+
   // Accept file if either extension or MIME type is valid
   // This handles cases where mobile devices don't set MIME type correctly
   if (!hasValidExtension && !hasValidMimeType) {
     return {
       valid: false,
       error: `Invalid file type. Only JPEG, PNG, WebP, or HEIC/HEIF images are allowed. ` +
-             `Detected: ${file.type || 'unknown'} (${file.name}).` +
-             ` If this is a Live Photo video clip (*.MOV), please choose the accompanying photo instead.`,
+        `Detected: ${file.type || 'unknown'} (${file.name}).` +
+        ` If this is a Live Photo video clip (*.MOV), please choose the accompanying photo instead.`,
     };
   }
 

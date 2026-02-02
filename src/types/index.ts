@@ -1,4 +1,4 @@
-// Common Types for Luxor Auto Sales
+// Common Types for Auto Sales Template
 
 export type ApiResponse<T = any> = {
   success: boolean;

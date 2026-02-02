@@ -1,4 +1,4 @@
-# Luxor Auto Sale - Complete Management System
+# Generic Auto Sales - Complete Management System
 
 A modern, full-stack vehicle inventory management system built with Next.js 14, TypeScript, Prisma, and PostgreSQL.
 
@@ -40,7 +40,7 @@ A modern, full-stack vehicle inventory management system built with Next.js 14, 
 
 ```bash
 git clone <repository-url>
-cd luxor-auto-sale
+cd generic-auto-sales-template
 npm install
 ```
 
@@ -52,39 +52,31 @@ Create a `.env` file in the root directory:
 cp env.example .env
 ```
 
-Edit `.env` with your configuration:
+Edit `.env` with your configuration. See `env.example` for all required variables.
 
-```env
-# Database
-DATABASE_URL="postgresql://user:password@localhost:5432/luxor_auto_sales"
+### 3. Site Configuration
 
-# App
-NODE_ENV="development"
-NEXT_PUBLIC_APP_URL="http://localhost:3000"
+Edit `src/siteConfig.ts` to customize your dealership information:
 
-# Authentication
-JWT_SECRET="your-secure-random-string-min-32-characters"
-JWT_EXPIRES_IN="7d"
-
-# Admin Credentials
-ADMIN_EMAIL="owner@luxorautosale.com"
-ADMIN_PASSWORD="change-me-on-first-login"
-
-# Image Storage (Cloudflare R2 recommended)
-R2_ACCOUNT_ID="your-r2-account-id"
-R2_ACCESS_KEY_ID="your-r2-access-key"
-R2_SECRET_ACCESS_KEY="your-r2-secret-key"
-R2_BUCKET="luxor-auto-sales-images"
-R2_PUBLIC_URL="https://images.luxorautosales.com"
-
-# OR AWS S3
-# AWS_ACCESS_KEY_ID="your-aws-key"
-# AWS_SECRET_ACCESS_KEY="your-aws-secret"
-# AWS_REGION="us-east-1"
-# AWS_S3_BUCKET="luxor-auto-sale-images"
+```typescript
+export const siteConfig = {
+  name: 'Your Dealership Name',
+  description: 'Your dealership tagline',
+  contact: {
+    phone: '(555) 123-4567',
+    email: 'sales@yourdealership.com',
+    address: '123 Main St, City, State ZIP',
+    mapUrl: 'https://www.google.com/maps/embed?pb=...',
+  },
+  social: {
+    facebook: 'https://facebook.com/yourdealership',
+    instagram: 'https://instagram.com/yourdealership',
+  },
+  // ... see file for more options
+};
 ```
 
-### 3. Database Setup
+### 4. Database Setup
 
 ```bash
 # Generate Prisma client
@@ -93,11 +85,11 @@ npm run db:generate
 # Create database tables
 npm run db:push
 
-# Seed initial data (creates admin user and sample vehicles)
+# Seed initial data (creates admin user)
 npm run db:seed
 ```
 
-### 4. Run Development Server
+### 5. Run Development Server
 
 ```bash
 npm run dev
@@ -143,7 +135,7 @@ Vercel will automatically:
 
 ```bash
 # Build production image
-docker build -t luxor-auto-sales .
+docker build -t auto-sales .
 
 # Run with docker-compose
 docker-compose up -d
@@ -194,7 +186,7 @@ npx prisma migrate reset
 ### Cloudflare R2 (Recommended - Free 10GB)
 
 1. **Sign up** at https://cloudflare.com
-2. **Create R2 bucket**: `luxor-auto-sales-images`
+2. **Create R2 bucket**: `your-dealership-images`
 3. **Get API tokens**: Generate access key and secret
 4. **Set up public domain**: Connect custom domain for public access
 5. **Update .env** with R2 credentials
@@ -211,24 +203,23 @@ npx prisma migrate reset
 
 ### Branding
 
-Update these files:
-- `src/app/layout.tsx` - Site title and meta tags
-- `src/app/globals.css` - Brand colors
-- `tailwind.config.ts` - Theme colors
-- `public/` - Logo and favicon files
+1. **Site Configuration**: Edit `src/siteConfig.ts` for all dealership info
+2. **Styling**: Update `src/app/globals.css` for brand colors
+3. **Theme**: Modify `tailwind.config.ts` for theme colors
+4. **Assets**: Replace files in `public/` (Logo.png, favicon, etc.)
 
 ### Content
 
 - **Homepage**: Edit `src/app/page.tsx`
 - **About**: Create `src/app/about/page.tsx`
-- **Contact**: Add contact form to homepage or create separate page
+- **Contact**: Customize contact forms in homepage
 
 ## 📱 Admin Portal Guide
 
 ### Adding a Vehicle
 
 1. **Login** to admin portal
-2. **Click "Add New Vehicle"**
+2. **Click \"Add New Vehicle\"**
 3. **Fill in vehicle details**:
    - VIN (required, 17 characters)
    - Year, Make, Model (required)
@@ -236,13 +227,13 @@ Update these files:
    - Technical specs (optional)
    - Description (optional)
 4. **Set status** (Draft, Available, Pending, Sold)
-5. **Click "Create Vehicle"**
+5. **Click \"Create Vehicle\"**
 6. **Upload photos** from the vehicle detail page
 
 ### Managing Photos
 
 1. **Open vehicle** in admin portal
-2. **Click "Manage Photos"**
+2. **Click \"Manage Photos\"**
 3. **Upload new photos** (drag & drop supported)
 4. **Set primary photo** (shown in listings)
 5. **Reorder photos** (drag to reorder)
@@ -326,7 +317,7 @@ For issues or questions:
 
 ## 📄 License
 
-Proprietary - All rights reserved by Luxor Auto Sales
+MIT License - Free to use and modify
 
 ## 🙏 Credits
 
@@ -340,9 +331,6 @@ Built with:
 
 ---
 
-**Last Updated**: January 2025
-**Version**: 1.0.0
-
----
-
-**Business Name**: Luxor Auto Sale (singular)
+**Last Updated**: February 2026
+**Version**: 1.0.0 (Template)
+# GSMotors

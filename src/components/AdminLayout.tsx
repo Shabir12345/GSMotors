@@ -5,6 +5,7 @@
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { siteConfig } from '@/siteConfig';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -15,7 +16,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   useEffect(() => {
     setMounted(true);
-    
+
     // Check authentication
     const token = localStorage.getItem('authToken');
     const userData = localStorage.getItem('user');
@@ -65,7 +66,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 </svg>
               </button>
               <Link href="/admin/dashboard" className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-blue-400 to-green-400 bg-clip-text text-transparent">
-                Luxor Admin
+                {siteConfig.name} Admin
               </Link>
             </div>
             <div className="flex items-center gap-2 sm:gap-4">
@@ -92,11 +93,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 key={item.href}
                 href={item.href}
                 onClick={() => setSidebarOpen(false)}
-                className={`flex items-center gap-3 px-4 py-2 sm:py-3 rounded-lg transition-colors text-sm sm:text-base ${
-                  pathname === item.href
-                    ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30'
-                    : 'text-gray-300 hover:bg-blue-600/10 hover:text-blue-400'
-                }`}
+                className={`flex items-center gap-3 px-4 py-2 sm:py-3 rounded-lg transition-colors text-sm sm:text-base ${pathname === item.href
+                  ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30'
+                  : 'text-gray-300 hover:bg-blue-600/10 hover:text-blue-400'
+                  }`}
               >
                 <span className="text-lg sm:text-xl">{item.icon}</span>
                 <span>{item.label}</span>
@@ -107,8 +107,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
         {/* Mobile Overlay */}
         {sidebarOpen && (
-          <div 
-            className="lg:hidden fixed inset-0 bg-black/50 z-40 top-16" 
+          <div
+            className="lg:hidden fixed inset-0 bg-black/50 z-40 top-16"
             onClick={() => setSidebarOpen(false)}
           />
         )}

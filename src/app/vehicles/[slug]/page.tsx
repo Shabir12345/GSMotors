@@ -5,6 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { formatPrice, formatMileage, formatBodyType, formatDrivetrain, formatFuelType, formatTransmission } from '@/utils/formatters';
 import VehicleImageGallery from '@/components/VehicleImageGallery';
+import { siteConfig } from '@/siteConfig';
 
 type Props = {
   params: { slug: string };
@@ -13,18 +14,18 @@ type Props = {
 async function getVehicle(slug: string) {
   try {
     let baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-    
+
     // Ensure baseUrl has protocol
     if (!baseUrl.startsWith('http://') && !baseUrl.startsWith('https://')) {
       baseUrl = `https://${baseUrl}`;
     }
-    
+
     const response = await fetch(`${baseUrl}/api/vehicles/${slug}`, {
       cache: 'no-store',
     });
-    
+
     if (!response.ok) return null;
-    
+
     const data = await response.json();
     return data.success ? data.data : null;
   } catch (error) {
@@ -43,8 +44,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 
   return {
-    title: `${vehicle.title} - Luxor Auto Sale`,
-    description: vehicle.description || `${vehicle.title} for sale at Luxor Auto Sale`,
+    title: `${vehicle.title} - ${siteConfig.name}`,
+    description: vehicle.description || `${vehicle.title} for sale at ${siteConfig.name}`,
     openGraph: {
       title: vehicle.title,
       description: vehicle.description || `${vehicle.title} for sale`,
@@ -92,7 +93,7 @@ export default async function VehicleDetailPage({ params }: Props) {
       availability: 'https://schema.org/InStock',
       seller: {
         '@type': 'AutoDealer',
-        name: 'Luxor Auto Sale',
+        name: siteConfig.name,
       },
     },
     ...(vehicle.description && { description: vehicle.description }),
@@ -114,11 +115,11 @@ export default async function VehicleDetailPage({ params }: Props) {
         {/* Header */}
         <header className="bg-gray-800/90 backdrop-blur-sm border-b border-blue-500/20 sticky top-0 z-40">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center nav-mobile" style={{height: '76px'}}>
+            <div className="flex justify-between items-center nav-mobile" style={{ height: '76px' }}>
               <Link href="/" className="flex items-center">
-                <img 
-                  src="/Logo.png" 
-                  alt="Luxor Auto Sale Logo" 
+                <img
+                  src="/Logo.png"
+                  alt={`${siteConfig.name} Logo`}
                   className="logo transition-all duration-300"
                 />
               </Link>
@@ -166,11 +167,11 @@ export default async function VehicleDetailPage({ params }: Props) {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Left Column - Image Gallery (Full Width on Mobile, 2/3 on Desktop) */}
             <div className="lg:col-span-2 space-y-6">
-              <VehicleImageGallery 
-                photos={vehicle.photos || []} 
+              <VehicleImageGallery
+                photos={vehicle.photos || []}
                 vehicleTitle={vehicle.title}
               />
-              
+
               {/* Description - Below Gallery */}
               {vehicle.description && (
                 <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-8 border border-gray-700/50">
@@ -199,12 +200,12 @@ export default async function VehicleDetailPage({ params }: Props) {
                     <div className="text-center mb-4">
                       <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500 to-green-500 rounded-full">
                         <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                         </svg>
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="flex flex-col gap-3">
                     <a
                       href="/#contact"
@@ -213,7 +214,7 @@ export default async function VehicleDetailPage({ params }: Props) {
                       📅 Book a Viewing
                     </a>
                     <a
-                      href="tel:+14165235375"
+                      href={`tel:${siteConfig.contact.phone}`}
                       className="btn-outline-modern text-base px-6 py-3 w-full"
                     >
                       📞 Call Us Now
@@ -229,13 +230,13 @@ export default async function VehicleDetailPage({ params }: Props) {
                       </a>
                     )}
                   </div>
-                  
+
                   <div className="pt-4 border-t border-gray-700">
                     <p className="text-xs text-gray-400 mb-2">Quick Contact:</p>
                     <p className="text-sm text-white font-semibold">
-                      📞 <a href="tel:+14165235375" className="hover:text-green-400 transition-colors">(416) 523-5375</a>
+                      📞 <a href={`tel:${siteConfig.contact.phone}`} className="hover:text-green-400 transition-colors">{siteConfig.contact.phone}</a>
                     </p>
-                    <p className="text-sm text-white">📧 luxorautosale@gmail.com</p>
+                    <p className="text-sm text-white">📧 {siteConfig.contact.email}</p>
                   </div>
                 </div>
               </div>

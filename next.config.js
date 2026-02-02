@@ -1,10 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  reactStrictMode: true,
-  swcMinify: true,
+  // reactStrictMode: true,
+  // swcMinify: false,
   poweredByHeader: false,
-  output: 'standalone', // For Docker deployment
-  
+  // output: 'standalone', // For Docker deployment
+
   // Optimize API routes for Netlify
   experimental: {
     serverActions: {
@@ -14,34 +14,19 @@ const nextConfig = {
 
   // Performance optimizations
   compress: true,
-  
+
   // Optimize fonts
   optimizeFonts: true,
-  
+
   // Reduce JavaScript bundle size
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production' ? {
       exclude: ['error', 'warn'],
     } : false,
   },
-  
-  // Fix for bcrypt in Next.js
-  webpack: (config, { isServer }) => {
-    if (isServer) {
-      config.externals.push({
-        'bcrypt': 'commonjs bcrypt',
-      });
-    }
-    
-    // Ignore node-pre-gyp HTML files
-    config.module.rules.push({
-      test: /\.html$/,
-      loader: 'ignore-loader',
-    });
 
-    return config;
-  },
-  
+  transpilePackages: ['swiper'],
+
   images: {
     remotePatterns: [
       {

@@ -1,6 +1,7 @@
 // Email service using Nodemailer with Gmail
 
 import nodemailer from 'nodemailer';
+import { siteConfig } from '../siteConfig';
 
 // Create reusable transporter object using Gmail SMTP
 const createTransporter = () => {
@@ -38,7 +39,7 @@ export const emailTemplates = {
           </div>
         </div>
         <p style="color: #64748b; font-size: 14px;">
-          This message was sent from your Luxor Auto Sales website contact form.
+          This message was sent from your ${siteConfig.name} website contact form.
         </p>
       </div>
     `,
@@ -60,7 +61,7 @@ export const emailTemplates = {
           <p style="margin: 0; color: #92400e;"><strong>Action Required:</strong> Contact the applicant within 24 hours to discuss financing options.</p>
         </div>
         <p style="color: #64748b; font-size: 14px;">
-          This application was submitted through your Luxor Auto Sales website financing form.
+          This application was submitted through your ${siteConfig.name} website financing form.
         </p>
       </div>
     `,
@@ -85,7 +86,7 @@ export const emailTemplates = {
           <p style="margin: 0; color: #92400e;"><strong>Action Required:</strong> Review the vehicle details and send a fair appraisal offer within 24 hours.</p>
         </div>
         <p style="color: #64748b; font-size: 14px;">
-          This request was submitted through your Luxor Auto Sales website trade-in form.
+          This request was submitted through your ${siteConfig.name} website trade-in form.
         </p>
       </div>
     `,
@@ -109,13 +110,13 @@ export async function sendEmail(to: string, subject: string, html: string): Prom
     console.log('Subject:', subject);
 
     const transporter = createTransporter();
-    
+
     // Test the connection first
     await transporter.verify();
     console.log('SMTP connection verified successfully');
-    
+
     const mailOptions = {
-      from: `"Luxor Auto Sales" <${process.env.EMAIL_USER}>`,
+      from: `"${siteConfig.name}" <${process.env.EMAIL_USER}>`,
       to,
       subject,
       html,
