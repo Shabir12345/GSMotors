@@ -32,8 +32,7 @@ export default function HeroScrollAnimation({
         setIsMounted(true);
     }, []);
 
-    // Progressive image loading with 3 phases
-    // Progressive image loading with 3 phases
+    // Progressive image loading with support for all frames
     useEffect(() => {
         if (!isMounted) return;
 
@@ -41,24 +40,14 @@ export default function HeroScrollAnimation({
         const imageObjects: HTMLImageElement[] = new Array(frameCount).fill(null);
         let loadedCount = 0;
 
-        // Check for reduced motion preference
-        const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        // Phase 1: Load priority frames (every 10th frame) - ensures jumpy movement ASAP
+        const priorityFrames = Array.from({ length: Math.ceil(frameCount / 10) }, (_, i) => i * 10);
 
-        // Phase 1: Load priority frames (every 10th frame) - 8 frames
-        // If reduced motion, ONLY load the first frame to save bandwidth/processing
-        const priorityFrames = prefersReducedMotion
-            ? [0]
-            : Array.from({ length: Math.ceil(frameCount / 10) }, (_, i) => i * 10);
-
-        // Phase 2: Load secondary frames (every 5th frame not in phase 1) - additional 8 frames
-        const secondaryFrames = prefersReducedMotion
-            ? []
-            : Array.from({ length: Math.ceil(frameCount / 5) }, (_, i) => i * 5).filter(i => !priorityFrames.includes(i));
+        // Phase 2: Load secondary frames (every 5th frame not in phase 1)
+        const secondaryFrames = Array.from({ length: Math.ceil(frameCount / 5) }, (_, i) => i * 5).filter(i => !priorityFrames.includes(i));
 
         // Phase 3: Load all remaining frames
-        const remainingFrames = prefersReducedMotion
-            ? []
-            : Array.from({ length: frameCount }, (_, i) => i).filter(i => !priorityFrames.includes(i) && !secondaryFrames.includes(i));
+        const remainingFrames = Array.from({ length: frameCount }, (_, i) => i).filter(i => !priorityFrames.includes(i) && !secondaryFrames.includes(i));
 
 
         const loadFrame = (index: number): Promise<void> => {
@@ -176,30 +165,61 @@ export default function HeroScrollAnimation({
             const frameIndex = Math.min(frameCount - 1, Math.max(0, Math.round(index)));
             const img = images[frameIndex];
 
+            // Better fallback: find the nearest loaded frame in either direction to ensure movement during loading
             if (!img || !img.complete || img.naturalWidth === 0) {
-                // Fallback to nearest loaded frame
-                for (let offset = 1; offset < frameCount; offset++) {
-                    const fallbackIndex = frameIndex - offset;
-                    if (fallbackIndex >= 0 && images[fallbackIndex]?.complete) {
-                        return renderFrame(fallbackIndex);
+                let nearestFrame = -1;
+                let minDistance = frameCount;
+
+                for (let i = 0; i < frameCount; i++) {
+                    const checkImg = images[i];
+                    if (checkImg && checkImg.complete && checkImg.naturalWidth > 0) {
+                        const distance = Math.abs(i - frameIndex);
+                        if (distance < minDistance) {
+                            minDistance = distance;
+                            nearestFrame = i;
+                        }
                     }
+                }
+
+                if (nearestFrame !== -1) {
+                    const finalImg = images[nearestFrame];
+                    const canvasRatio = canvas.width / canvas.height;
+                    const imgRatio = finalImg.naturalWidth / finalImg.naturalHeight;
+
+                    let drawWidth, drawHeight, offsetX, offsetY;
+
+                    if (imgRatio > canvasRatio) {
+                        drawHeight = canvas.height * 1.01;
+                        drawWidth = (finalImg.naturalWidth * (canvas.height / finalImg.naturalHeight)) * 1.01;
+                        offsetX = (canvas.width - drawWidth) / 2;
+                        offsetY = (canvas.height - drawHeight) / 2;
+                    } else {
+                        drawWidth = canvas.width * 1.01;
+                        drawHeight = (finalImg.naturalHeight * (canvas.width / finalImg.naturalWidth)) * 1.01;
+                        offsetX = (canvas.width - drawWidth) / 2;
+                        offsetY = (canvas.height - drawHeight) / 2;
+                    }
+
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    ctx.drawImage(finalImg, offsetX, offsetY, drawWidth, drawHeight);
+                    return;
                 }
                 return;
             }
 
             const canvasRatio = canvas.width / canvas.height;
-            const imgRatio = img.width / img.height;
+            const imgRatio = img.naturalWidth / img.naturalHeight;
 
             let drawWidth, drawHeight, offsetX, offsetY;
 
             if (imgRatio > canvasRatio) {
                 drawHeight = canvas.height * 1.01;
-                drawWidth = (img.width * (canvas.height / img.height)) * 1.01;
+                drawWidth = (img.naturalWidth * (canvas.height / img.naturalHeight)) * 1.01;
                 offsetX = (canvas.width - drawWidth) / 2;
                 offsetY = (canvas.height - drawHeight) / 2;
             } else {
                 drawWidth = canvas.width * 1.01;
-                drawHeight = (img.height * (canvas.width / img.width)) * 1.01;
+                drawHeight = (img.naturalHeight * (canvas.width / img.naturalWidth)) * 1.01;
                 offsetX = (canvas.width - drawWidth) / 2;
                 offsetY = (canvas.height - drawHeight) / 2;
             }
