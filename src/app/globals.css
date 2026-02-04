@@ -2,6 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Swiper CSS - imported globally to avoid dynamic loading conflicts */
+@import 'swiper/css';
+@import 'swiper/css/navigation';
+@import 'swiper/css/pagination';
+
 @layer base {
   :root {
     --brand-dark: #0f172a;
@@ -16,6 +21,15 @@
 
   html {
     scroll-behavior: smooth;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 
   /* Headings */
@@ -66,6 +80,7 @@
     -webkit-backdrop-filter: blur(12px);
     border: 1px solid rgba(255, 255, 255, 0.1);
     box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    contain: layout style paint;
   }
 
   .glass-nav {
@@ -74,12 +89,15 @@
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    contain: layout style;
   }
 
   .premium-card {
     background-image: linear-gradient(to bottom right, #111827, #000000);
     border: 1px solid #1f2937;
     transition: all 300ms;
+    will-change: transform, border-color;
+    transform: translateZ(0);
   }
 
   .premium-card:hover {
@@ -93,9 +111,58 @@
     justify-content: center;
     font-weight: 700;
     transition: all 300ms;
+    will-change: transform;
+    transform: translateZ(0);
   }
 
   .btn-modern:active {
-    transform: scale(0.95);
+    transform: scale(0.95) translateZ(0);
+  }
+
+  /* Performance optimizations */
+  .animate-fade-in {
+    animation: fadeIn 0.6s ease-out;
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.6s ease-out;
+    will-change: transform, opacity;
+  }
+
+  /* Content visibility for off-screen sections */
+  section {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 500px;
+    contain: layout paint;
+  }
+
+  /* GPU Layer Promotion */
+  .gpu-layer {
+    will-change: transform, opacity;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+  }
+
+  /* GPU acceleration for animations */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px) translateZ(0);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0) translateZ(0);
+    }
   }
 }

@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // reactStrictMode: true,
-  // swcMinify: false,
+  reactStrictMode: true,
+  swcMinify: true,
   poweredByHeader: false,
   // output: 'standalone', // For Docker deployment
 
@@ -10,6 +10,20 @@ const nextConfig = {
     serverActions: {
       bodySizeLimit: '2mb',
     },
+    // Disable optimizePackageImports for Swiper to prevent module resolution issues
+  },
+
+  // Webpack configuration for better chunk loading reliability
+  webpack: (config, { isServer }) => {
+    // Add chunk loading timeout and retry logic
+    if (!isServer) {
+      config.output = {
+        ...config.output,
+        chunkLoadTimeout: 30000, // 30 seconds
+      };
+    }
+
+    return config;
   },
 
   // Performance optimizations
@@ -95,6 +109,10 @@ const nextConfig = {
           {
             key: 'Permissions-Policy',
             value: 'camera=(), microphone=(), geolocation=(self)',
+          },
+          {
+            key: 'Link',
+            value: '<https://fonts.googleapis.com>; rel=preconnect; crossorigin, <https://fonts.gstatic.com>; rel=preconnect; crossorigin',
           },
         ],
       },

@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Clear Cache & Service Worker</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #1a1a1a;
+            color: #fff;
+        }
+        .status {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            background: #2a2a2a;
+        }
+        .success { background: #1a4d2e; }
+        .error { background: #4d1a1a; }
+        button {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        button:hover { background: #dc2626; }
+    </style>
+</head>
+<body>
+    <h1>🧹 Clear Browser Cache & Service Worker</h1>
+    <p>This will completely clear all cached data and unregister the service worker.</p>
+    
+    <button onclick="clearEverything()">Clear All Cache & SW</button>
+    <button onclick="location.reload(true)">Hard Reload</button>
+    
+    <div id="status"></div>
+
+    <script>
+        async function clearEverything() {
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerHTML = '<div class="status">Clearing...</div>';
+            
+            try {
+                // Unregister all service workers
+                const registrations = await navigator.serviceWorker.getRegistrations();
+                for (let registration of registrations) {
+                    await registration.unregister();
+                    statusDiv.innerHTML += '<div class="status success">✓ Unregistered service worker</div>';
+                }
+                
+                // Clear all caches
+                const cacheNames = await caches.keys();
+                for (let name of cacheNames) {
+                    await caches.delete(name);
+                    statusDiv.innerHTML += `<div class="status success">✓ Deleted cache: ${name}</div>`;
+                }
+                
+                // Clear localStorage
+                localStorage.clear();
+                statusDiv.innerHTML += '<div class="status success">✓ Cleared localStorage</div>';
+                
+                // Clear sessionStorage
+                sessionStorage.clear();
+                statusDiv.innerHTML += '<div class="status success">✓ Cleared sessionStorage</div>';
+                
+                statusDiv.innerHTML += '<div class="status success"><strong>✓ ALL CLEAR! Now close this tab and hard refresh your app (Ctrl+Shift+R)</strong></div>';
+                
+            } catch (error) {
+                statusDiv.innerHTML += `<div class="status error">✗ Error: ${error.message}</div>`;
+            }
+        }
+        
+        // Auto-run on load
+        window.addEventListener('load', () => {
+            document.getElementById('status').innerHTML = '<div class="status">Ready to clear cache. Click the button above.</div>';
+        });
+    </script>
+</body>
+</html>

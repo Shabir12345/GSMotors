@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import AdminLayout from '@/components/AdminLayout';
 import Link from 'next/link';
+import Image from 'next/image';
 
 interface Photo {
   id: string;
@@ -29,7 +30,7 @@ export default function VehiclePhotosPage() {
   const params = useParams();
   const router = useRouter();
   const vehicleId = params.id as string;
-  
+
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [loading, setLoading] = useState(true);
@@ -85,16 +86,16 @@ export default function VehiclePhotosPage() {
     if (!files || files.length === 0) return;
 
     const fileArray = Array.from(files);
-    
+
     // Client-side validation before upload
     const allowedExtensions = ['.jpg', '.jpeg', '.png', '.webp', '.heic', '.heif'];
     const maxSize = 20 * 1024 * 1024; // 20MB
     const minSize = 100; // 100 bytes minimum
-    
+
     for (const file of fileArray) {
       const fileName = file.name.toLowerCase();
       const hasValidExtension = allowedExtensions.some(ext => fileName.endsWith(ext));
-      
+
       if (!hasValidExtension) {
         setError(
           `Invalid file type: ${file.name}. ` +
@@ -103,19 +104,19 @@ export default function VehiclePhotosPage() {
         );
         return;
       }
-      
+
       if (file.size > maxSize) {
         const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
         setError(`File too large: ${file.name} (${sizeMB}MB). Maximum size is 20MB.`);
         return;
       }
-      
+
       if (file.size < minSize) {
         setError(`File appears to be empty or corrupted: ${file.name}. Please select a valid image file.`);
         return;
       }
     }
-    
+
     setUploading(true);
     setError('');
     setSuccessMessage('');
@@ -131,10 +132,10 @@ export default function VehiclePhotosPage() {
     try {
       const token = localStorage.getItem('authToken');
       let photoCount = photos.length;
-      
+
       for (let i = 0; i < fileArray.length; i++) {
         const file = fileArray[i];
-        
+
         // Update progress - starting upload
         setUploadProgress({
           current: i,
@@ -279,7 +280,7 @@ export default function VehiclePhotosPage() {
   const handleSetPrimary = async (photoId: string) => {
     try {
       const token = localStorage.getItem('authToken');
-      
+
       // Set selected photo as primary (backend will handle unsetting others)
       const response = await fetch(`/api/admin/photos/${photoId}`, {
         method: 'PUT',
@@ -405,7 +406,7 @@ export default function VehiclePhotosPage() {
         {/* Upload Section */}
         <div className="bg-gray-800 rounded-lg border border-gray-700 p-6 mb-8">
           <h2 className="text-xl font-semibold text-white mb-4">Upload Photos</h2>
-          
+
           {error && (
             <div className="bg-red-500/10 border border-red-500 text-red-500 px-4 py-3 rounded mb-4">
               {error}
@@ -424,7 +425,7 @@ export default function VehiclePhotosPage() {
               <div className="flex items-center justify-between mb-2">
                 <div className="flex-1">
                   <p className="text-white font-medium">
-                    {uploadProgress.current === uploadProgress.total 
+                    {uploadProgress.current === uploadProgress.total
                       ? `Completed ${uploadProgress.total} ${uploadProgress.total === 1 ? 'photo' : 'photos'}`
                       : `Uploading photo ${uploadProgress.current + 1} of ${uploadProgress.total}`}
                   </p>
@@ -501,10 +502,12 @@ export default function VehiclePhotosPage() {
             {photos.map((photo) => (
               <div key={photo.id} className="bg-gray-800 rounded-lg border border-gray-700 overflow-hidden">
                 <div className="relative">
-                  <img
+                  <Image
                     src={photo.url}
                     alt={photo.altText || 'Vehicle photo'}
-                    className="w-full h-48 object-cover"
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                   />
                   {photo.isPrimary && (
                     <div className="absolute top-2 left-2 bg-green-500 text-white px-2 py-1 rounded text-xs font-medium">

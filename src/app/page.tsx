@@ -1,14 +1,11 @@
 import Link from 'next/link';
-import dynamic from 'next/dynamic';
 import { siteConfig } from '@/siteConfig';
 
-const HeroScrollAnimation = dynamic(() => import('@/components/HeroScrollAnimation'), {
-  ssr: false,
-  loading: () => <div className="h-screen bg-black" />
-});
-
-import InventoryGrid from '@/components/InventoryGrid';
+// Import components directly - they're already marked as 'use client'
+// Removing dynamic imports fixes webpack module resolution errors
+import HeroScrollAnimation from '@/components/HeroScrollAnimation';
 import Testimonials from '@/components/Testimonials';
+import InventoryGrid from '@/components/InventoryGrid';
 import DynamicHeroText from '@/components/DynamicHeroText';
 import FinancingSection from '@/components/FinancingSection';
 import TradeInSection from '@/components/TradeInSection';

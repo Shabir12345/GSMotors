@@ -6,10 +6,15 @@ import { siteConfig } from '@/siteConfig';
 
 export default function Footer() {
     const [year, setYear] = useState<number>(2026);
+    const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
+        setMounted(true);
         setYear(new Date().getFullYear());
     }, []);
+
+    // Use 2026 as default for server rendering to match client if possible, 
+    // or just use suppressHydrationWarning on the year display.
 
     return (
         <footer className="relative bg-brand-darker pt-24 pb-12 overflow-hidden">
@@ -44,14 +49,42 @@ export default function Footer() {
                     <div>
                         <h3 className="text-white font-bold mb-6 text-lg">Navigation</h3>
                         <ul className="space-y-4">
-                            {['Home', 'Inventory', 'Financing', 'Sell/Trade', 'About'].map(item => (
-                                <li key={item}>
-                                    <Link href={`#${item.toLowerCase().replace('/', '-')}`} className="text-gray-400 hover:text-brand-accent transition-colors flex items-center group">
-                                        <span className="w-1.5 h-1.5 rounded-full bg-brand-accent opacity-0 group-hover:opacity-100 mr-2 transition-all"></span>
-                                        {item}
-                                    </Link>
-                                </li>
-                            ))}
+                            <li>
+                                <Link href="/" className="text-gray-400 hover:text-brand-accent transition-colors flex items-center group">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-brand-accent opacity-0 group-hover:opacity-100 mr-2 transition-all"></span>
+                                    Home
+                                </Link>
+                            </li>
+                            <li>
+                                <Link href="/inventory" className="text-gray-400 hover:text-brand-accent transition-colors flex items-center group">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-brand-accent opacity-0 group-hover:opacity-100 mr-2 transition-all"></span>
+                                    Inventory
+                                </Link>
+                            </li>
+                            <li>
+                                <Link href="/wholesale" className="text-gray-400 hover:text-brand-accent transition-colors flex items-center group">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-brand-accent opacity-0 group-hover:opacity-100 mr-2 transition-all"></span>
+                                    Wholesale
+                                </Link>
+                            </li>
+                            <li>
+                                <Link href="/financing" className="text-gray-400 hover:text-brand-accent transition-colors flex items-center group">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-brand-accent opacity-0 group-hover:opacity-100 mr-2 transition-all"></span>
+                                    Financing
+                                </Link>
+                            </li>
+                            <li>
+                                <Link href="/sell-trade" className="text-gray-400 hover:text-brand-accent transition-colors flex items-center group">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-brand-accent opacity-0 group-hover:opacity-100 mr-2 transition-all"></span>
+                                    Sell/Trade
+                                </Link>
+                            </li>
+                            <li>
+                                <Link href="/contact" className="text-gray-400 hover:text-brand-accent transition-colors flex items-center group">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-brand-accent opacity-0 group-hover:opacity-100 mr-2 transition-all"></span>
+                                    Contact
+                                </Link>
+                            </li>
                         </ul>
                     </div>
 
@@ -88,7 +121,7 @@ export default function Footer() {
                             Book a viewing today and experience the difference of a GS Motors vehicle.
                         </p>
                         <Link
-                            href="#contact"
+                            href="/contact"
                             className="btn-modern bg-white/10 text-white w-full text-center block hover:bg-white/20 border border-white/10"
                         >
                             Get Started
@@ -98,7 +131,7 @@ export default function Footer() {
 
                 {/* Copyright */}
                 <div className="border-t border-white/5 pt-8 text-center md:text-left flex flex-col md:flex-row justify-between items-center text-sm text-gray-500">
-                    <p>&copy; {year} {siteConfig.name}. All rights reserved.</p>
+                    <p suppressHydrationWarning>&copy; {year} {siteConfig.name}. All rights reserved.</p>
                     <div className="flex space-x-6 mt-4 md:mt-0">
                         <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
                         <a href="#" className="hover:text-white transition-colors">Terms of Service</a>

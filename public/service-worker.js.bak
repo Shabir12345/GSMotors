@@ -1,0 +1,135 @@
+// Service Worker for caching static assets and hero animation frames
+const CACHE_VERSION = 'v2'; // Bumped version to force cache clear
+const CACHE_NAME = `gs-motors-${CACHE_VERSION}`;
+
+// Assets to cache immediately on install
+const PRECACHE_ASSETS = [
+    '/manifest.json',
+];
+
+// Patterns to NEVER cache (HTML pages to avoid hydration issues)
+const NEVER_CACHE_PATTERNS = [
+    /\.html$/,
+    /\/$/,  // Root and routes without extension
+];
+
+// Cache strategies
+const CACHE_FIRST_PATTERNS = [
+    /\/images\/hero-scroll\//,  // Hero animation frames
+    /\.(woff2?|ttf|eot)$/,      // Fonts
+    /\/images\//,                // Static images
+];
+
+const NETWORK_FIRST_PATTERNS = [
+    /\/api\//,                   // API calls
+    /\/_next\/data\//,           // Next.js data
+];
+
+// Install event - precache essential assets
+self.addEventListener('install', (event) => {
+    event.waitUntil(
+        caches.open(CACHE_NAME).then((cache) => {
+            return cache.addAll(PRECACHE_ASSETS);
+        }).then(() => {
+            return self.skipWaiting();
+        })
+    );
+});
+
+// Activate event - clean up old caches
+self.addEventListener('activate', (event) => {
+    event.waitUntil(
+        caches.keys().then((cacheNames) => {
+            return Promise.all(
+                cacheNames
+                    .filter((name) => name.startsWith('gs-motors-') && name !== CACHE_NAME)
+                    .map((name) => caches.delete(name))
+            );
+        }).then(() => {
+            return self.clients.claim();
+        })
+    );
+});
+
+// Fetch event - implement caching strategies
+self.addEventListener('fetch', (event) => {
+    const { request } = event;
+    const url = new URL(request.url);
+
+    // Skip non-GET requests
+    if (request.method !== 'GET') {
+        return;
+    }
+
+    // Skip chrome-extension and other non-http(s) requests
+    if (!url.protocol.startsWith('http')) {
+        return;
+    }
+
+    // NEVER cache HTML pages (prevents hydration issues)
+    if (NEVER_CACHE_PATTERNS.some(pattern => pattern.test(url.pathname))) {
+        event.respondWith(fetch(request));
+        return;
+    }
+
+    // Cache-first strategy for static assets
+    if (CACHE_FIRST_PATTERNS.some(pattern => pattern.test(url.pathname))) {
+        event.respondWith(
+            caches.match(request).then((cachedResponse) => {
+                if (cachedResponse) {
+                    return cachedResponse;
+                }
+
+                return fetch(request).then((response) => {
+                    // Don't cache if not a valid response
+                    if (!response || response.status !== 200 || response.type === 'error') {
+                        return response;
+                    }
+
+                    const responseToCache = response.clone();
+                    caches.open(CACHE_NAME).then((cache) => {
+                        cache.put(request, responseToCache);
+                    });
+
+                    return response;
+                });
+            })
+        );
+        return;
+    }
+
+    // Network-first strategy for dynamic content
+    if (NETWORK_FIRST_PATTERNS.some(pattern => pattern.test(url.pathname))) {
+        event.respondWith(
+            fetch(request)
+                .then((response) => {
+                    const responseToCache = response.clone();
+                    caches.open(CACHE_NAME).then((cache) => {
+                        cache.put(request, responseToCache);
+                    });
+                    return response;
+                })
+                .catch(() => {
+                    return caches.match(request);
+                })
+        );
+        return;
+    }
+
+    // Stale-while-revalidate for everything else
+    event.respondWith(
+        caches.match(request).then((cachedResponse) => {
+            const fetchPromise = fetch(request).then((response) => {
+                if (response && response.status === 200) {
+                    const responseToCache = response.clone();
+                    caches.open(CACHE_NAME).then((cache) => {
+                        cache.put(request, responseToCache);
+                    });
+                }
+                return response;
+            });
+
+            return cachedResponse || fetchPromise;
+        })
+    );
+});

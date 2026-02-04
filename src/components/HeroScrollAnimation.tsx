@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { HeroScrollContext } from '@/components/HeroScrollContext';
+import HeroLoadingPlaceholder from '@/components/HeroLoadingPlaceholder';
 
 
 interface HeroScrollAnimationProps {
@@ -25,97 +26,178 @@ export default function HeroScrollAnimation({
     const [isMounted, setIsMounted] = useState(false);
     const [progress, setProgress] = useState(0);
     const [currentFrame, setCurrentFrame] = useState(0);
+    const [hasError, setHasError] = useState(false);
 
     useEffect(() => {
         setIsMounted(true);
     }, []);
 
-    // Preload images
+    // Progressive image loading with 3 phases
+    // Progressive image loading with 3 phases
     useEffect(() => {
+        if (!isMounted) return;
+
+        let isMountedLocal = true;
+        const imageObjects: HTMLImageElement[] = new Array(frameCount).fill(null);
         let loadedCount = 0;
-        const imgArray: HTMLImageElement[] = [];
 
-        // Preload priority frames first (e.g., every 5th frame) to give immediate feedback
-        // then fill in the gaps. For simplicity, we'll load all sequentially here but
-        // a real prod app might use a more complex strategy.
+        // Check for reduced motion preference
+        const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-        // We'll use a promise-based approach to control concurrency if needed, 
-        // but browsers handle image loading reasonably well.
-        const loadImages = async () => {
-            const promises = [];
-            const imageObjects: HTMLImageElement[] = new Array(frameCount).fill(null);
+        // Phase 1: Load priority frames (every 10th frame) - 8 frames
+        // If reduced motion, ONLY load the first frame to save bandwidth/processing
+        const priorityFrames = prefersReducedMotion
+            ? [0]
+            : Array.from({ length: Math.ceil(frameCount / 10) }, (_, i) => i * 10);
 
-            for (let i = 0; i < frameCount; i++) {
-                const promise = new Promise<void>((resolve) => {
+        // Phase 2: Load secondary frames (every 5th frame not in phase 1) - additional 8 frames
+        const secondaryFrames = prefersReducedMotion
+            ? []
+            : Array.from({ length: Math.ceil(frameCount / 5) }, (_, i) => i * 5).filter(i => !priorityFrames.includes(i));
+
+        // Phase 3: Load all remaining frames
+        const remainingFrames = prefersReducedMotion
+            ? []
+            : Array.from({ length: frameCount }, (_, i) => i).filter(i => !priorityFrames.includes(i) && !secondaryFrames.includes(i));
+
+
+        const loadFrame = (index: number): Promise<void> => {
+            return new Promise((resolve) => {
+                try {
+                    if (imageObjects[index]) {
+                        resolve();
+                        return;
+                    }
+
                     const img = new Image();
-                    const frameIndex = i.toString().padStart(3, '0');
+                    const frameIndex = index.toString().padStart(3, '0');
                     img.src = `${imagesPath}${frameIndex}${imageExtension}`;
+
                     img.onload = () => {
+                        if (!isMountedLocal) return;
                         loadedCount++;
                         setLoadingProgress(Math.round((loadedCount / frameCount) * 100));
                         resolve();
                     };
+
                     img.onerror = () => {
-                        // Handle error - maybe try to load previous frame or just skip
-                        console.error(`Failed to load frame ${i}`);
-                        loadedCount++; // Count as handled
+                        console.error(`Failed to load frame ${index}`);
+                        loadedCount++;
                         resolve();
                     };
-                    imageObjects[i] = img;
-                });
-                promises.push(promise);
-            }
 
-            await Promise.all(promises);
-            setImages(imageObjects);
-            setIsLoaded(true);
+                    imageObjects[index] = img;
+                } catch (error) {
+                    console.error('Error loading frame:', error);
+                    setHasError(true);
+                    resolve();
+                }
+            });
         };
 
-        let isMounted = true;
-        loadImages().then(() => {
-            if (!isMounted) return;
-        });
+        const loadImages = async () => {
+            try {
+                // Phase 1: Load priority frames immediately
+                await Promise.all(priorityFrames.map(loadFrame));
+
+                if (!isMountedLocal) return;
+                setImages([...imageObjects]);
+                setIsLoaded(true); // Enable animation with priority frames
+
+                // Phase 2: Load secondary frames using requestIdleCallback
+                const loadSecondaryFrames = () => {
+                    if (!isMountedLocal) return;
+
+                    const loadBatch = async () => {
+                        await Promise.all(secondaryFrames.map(loadFrame));
+                        if (!isMountedLocal) return;
+                        setImages([...imageObjects]);
+                    };
+
+                    if ('requestIdleCallback' in window) {
+                        requestIdleCallback(() => loadBatch());
+                    } else {
+                        setTimeout(() => loadBatch(), 100);
+                    }
+                };
+
+                loadSecondaryFrames();
+
+                // Phase 3: Load remaining frames in background
+                const loadRemainingFrames = () => {
+                    if (!isMountedLocal) return;
+
+                    const loadBatch = async () => {
+                        // Load in chunks to avoid blocking
+                        const chunkSize = 10;
+                        for (let i = 0; i < remainingFrames.length; i += chunkSize) {
+                            if (!isMountedLocal) return;
+                            const chunk = remainingFrames.slice(i, i + chunkSize);
+                            await Promise.all(chunk.map(loadFrame));
+                            setImages([...imageObjects]);
+                        }
+                    };
+
+                    if ('requestIdleCallback' in window) {
+                        requestIdleCallback(() => loadBatch(), { timeout: 2000 });
+                    } else {
+                        setTimeout(() => loadBatch(), 500);
+                    }
+                };
+
+                loadRemainingFrames();
+            } catch (error) {
+                console.error('Error in image loading:', error);
+                setHasError(true);
+            }
+        };
+
+        loadImages();
 
         return () => {
-            isMounted = false;
+            isMountedLocal = false;
         };
-    }, [frameCount, imagesPath, imageExtension]);
+    }, [frameCount, imagesPath, imageExtension, isMounted]);
 
-    // Canvas drawing logic
+    // Canvas drawing logic with optimized scroll handling
     useEffect(() => {
         if (!isLoaded || images.length === 0) return;
 
         const canvas = canvasRef.current;
         if (!canvas) return;
 
-        const ctx = canvas.getContext('2d');
+        const ctx = canvas.getContext('2d', { alpha: false });
         if (!ctx) return;
 
-        // Type checking for the ref context
+        let rafId: number | null = null;
+        let isScrolling = false;
+
         const renderFrame = (index: number) => {
-            // Clamp index
             const frameIndex = Math.min(frameCount - 1, Math.max(0, Math.round(index)));
             const img = images[frameIndex];
 
-            if (!img) return;
+            if (!img || !img.complete || img.naturalWidth === 0) {
+                // Fallback to nearest loaded frame
+                for (let offset = 1; offset < frameCount; offset++) {
+                    const fallbackIndex = frameIndex - offset;
+                    if (fallbackIndex >= 0 && images[fallbackIndex]?.complete) {
+                        return renderFrame(fallbackIndex);
+                    }
+                }
+                return;
+            }
 
-            // Only draw if image is successfully loaded
-            if (!img.complete || img.naturalWidth === 0) return;
-
-            // Draw logic to cover the canvas (object-fit: cover)
             const canvasRatio = canvas.width / canvas.height;
             const imgRatio = img.width / img.height;
 
             let drawWidth, drawHeight, offsetX, offsetY;
 
             if (imgRatio > canvasRatio) {
-                // Image is wider than canvas
                 drawHeight = canvas.height * 1.01;
                 drawWidth = (img.width * (canvas.height / img.height)) * 1.01;
                 offsetX = (canvas.width - drawWidth) / 2;
                 offsetY = (canvas.height - drawHeight) / 2;
             } else {
-                // Image is taller than canvas
                 drawWidth = canvas.width * 1.01;
                 drawHeight = (img.height * (canvas.width / img.width)) * 1.01;
                 offsetX = (canvas.width - drawWidth) / 2;
@@ -130,32 +212,68 @@ export default function HeroScrollAnimation({
         renderFrame(0);
 
         const handleScroll = () => {
-            const container = containerRef.current;
-            if (!container) return;
+            if (isScrolling) return;
 
-            const rect = container.getBoundingClientRect();
-            const windowHeight = window.innerHeight;
+            isScrolling = true;
 
-            const scrollableDistance = rect.height - windowHeight;
-            if (scrollableDistance <= 0) return;
+            if (rafId !== null) {
+                cancelAnimationFrame(rafId);
+            }
 
-            const rawProgress = -rect.top / scrollableDistance;
-            const progress = Math.max(0, Math.min(1, rawProgress));
+            rafId = requestAnimationFrame(() => {
+                const container = containerRef.current;
+                if (!container) {
+                    isScrolling = false;
+                    return;
+                }
 
-            const frameIndex = progress * (frameCount - 1);
-            setProgress(progress);
-            setCurrentFrame(Math.round(frameIndex));
+                const rect = container.getBoundingClientRect();
+                const windowHeight = window.innerHeight;
 
-            requestAnimationFrame(() => renderFrame(frameIndex));
+                const scrollableDistance = rect.height - windowHeight;
+                if (scrollableDistance <= 0) {
+                    isScrolling = false;
+                    return;
+                }
+
+                const rawProgress = -rect.top / scrollableDistance;
+                const progress = Math.max(0, Math.min(1, rawProgress));
+
+                const frameIndex = progress * (frameCount - 1);
+                setProgress(progress);
+                setCurrentFrame(Math.round(frameIndex));
+
+                renderFrame(frameIndex);
+                isScrolling = false;
+            });
         };
 
-        window.addEventListener('scroll', handleScroll);
+        // Intersection observer to only animate when visible
+        const observer = new IntersectionObserver(
+            (entries) => {
+                entries.forEach((entry) => {
+                    if (entry.isIntersecting) {
+                        // Only listen to scroll when element is in view
+                        window.addEventListener('scroll', handleScroll, { passive: true });
+                        handleScroll(); // Initial sync
+                    } else {
+                        // Stop listening when out of view to save resources
+                        window.removeEventListener('scroll', handleScroll);
+                    }
+                });
+            },
+            { threshold: 0 } // Trigger when even 1 pixel is visible
+        );
+
+        if (containerRef.current) {
+            observer.observe(containerRef.current);
+        }
+
         const updateCanvasSize = () => {
             if (canvasRef.current && canvasRef.current.parentElement) {
                 const parentRect = canvasRef.current.parentElement.getBoundingClientRect();
                 const dpr = window.devicePixelRatio || 1;
 
-                // Use parent dimensions to ensure exact fit
                 canvasRef.current.width = parentRect.width * dpr;
                 canvasRef.current.height = parentRect.height * dpr;
 
@@ -163,16 +281,39 @@ export default function HeroScrollAnimation({
             }
         };
 
-        window.addEventListener('resize', updateCanvasSize);
+        const handleResize = () => {
+            if (canvasRef.current && canvasRef.current.parentElement) {
+                // Debounce resize
+                if (rafId) cancelAnimationFrame(rafId);
+                rafId = requestAnimationFrame(updateCanvasSize);
+            }
+        };
 
-        // Set initial canvas size
+        window.addEventListener('resize', handleResize, { passive: true });
         updateCanvasSize();
 
         return () => {
+            if (rafId !== null) {
+                cancelAnimationFrame(rafId);
+            }
+            // Cleanup listeners
             window.removeEventListener('scroll', handleScroll);
-            window.removeEventListener('resize', updateCanvasSize);
+            window.removeEventListener('resize', handleResize);
+            observer.disconnect();
         };
     }, [isLoaded, images, frameCount]);
+
+    // Error fallback
+    if (hasError) {
+        return (
+            <div className="relative w-full h-screen bg-black flex items-center justify-center">
+                <div className="text-center">
+                    <h1 className="text-4xl md:text-6xl font-bold text-white mb-4">GS Motors</h1>
+                    <p className="text-xl text-gray-400">Loading experience...</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <HeroScrollContext.Provider value={{ progress, currentFrame, isLoaded }}>
@@ -188,18 +329,7 @@ export default function HeroScrollAnimation({
                     ) : (
                         <>
                             {!isLoaded && (
-                                <div className="absolute inset-0 flex items-center justify-center text-white z-10">
-                                    <div className="text-center">
-                                        <div className="mb-4 text-2xl font-bold">Loading Experience...</div>
-                                        <div className="w-64 h-2 bg-gray-800 rounded-full overflow-hidden">
-                                            <div
-                                                className="h-full bg-blue-600 transition-all duration-100 ease-out"
-                                                style={{ width: `${loadingProgress}%` }}
-                                            />
-                                        </div>
-                                        <p className="mt-2 text-sm text-gray-400">{loadingProgress}%</p>
-                                    </div>
-                                </div>
+                                <HeroLoadingPlaceholder progress={loadingProgress} />
                             )}
                         </>
                     )}
@@ -217,6 +347,7 @@ export default function HeroScrollAnimation({
                     <canvas
                         ref={canvasRef}
                         className="block w-full h-full object-cover"
+                        style={{ willChange: 'transform' }}
                     />
                 </div>
             </div>

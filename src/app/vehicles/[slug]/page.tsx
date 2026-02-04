@@ -120,7 +120,7 @@ export default async function VehicleDetailPage({ params }: Props) {
                 <img
                   src="/Logo.png"
                   alt={`${siteConfig.name} Logo`}
-                  className="logo transition-all duration-300"
+                  className="logo transition-transform duration-300"
                 />
               </Link>
               <nav className="flex gap-6">

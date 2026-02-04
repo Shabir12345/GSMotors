@@ -3,12 +3,7 @@
 import React, { useMemo } from 'react';
 import Link from 'next/link';
 import { useHeroScroll } from '@/components/HeroScrollContext';
-import { clsx, type ClassValue } from 'clsx';
-import { twMerge } from 'tailwind-merge';
-
-function cn(...inputs: ClassValue[]) {
-    return twMerge(clsx(inputs));
-}
+import { cn } from '@/lib/utils';
 
 export default function DynamicHeroText() {
     const { currentFrame, isLoaded } = useHeroScroll();
@@ -79,13 +74,13 @@ export default function DynamicHeroText() {
                 </p>
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-4">
                     <Link
-                        href="#featured-inventory"
+                        href="/inventory"
                         className="btn-modern bg-brand-accent hover:bg-brand-accent-glow text-white px-8 py-4 rounded-full text-lg shadow-2xl shadow-brand-accent/30 w-full sm:w-auto transition-all hover:scale-105 text-center"
                     >
                         Explore Inventory
                     </Link>
                     <Link
-                        href="#contact"
+                        href="/contact"
                         className="px-8 py-4 rounded-full text-lg text-white border border-white/30 backdrop-blur-md hover:bg-white/10 w-full sm:w-auto transition-all text-center"
                     >
                         Book a Viewing

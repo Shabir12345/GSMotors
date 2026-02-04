@@ -2,13 +2,19 @@ import React from 'react';
 import type { Metadata } from 'next';
 import { Outfit } from 'next/font/google';
 import Script from 'next/script';
-import { Analytics } from '@vercel/analytics/next';
+import { Analytics } from '@vercel/analytics/react';
 import './globals.css';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { siteConfig } from '@/siteConfig';
+import ServiceWorkerRegistration from '@/components/ServiceWorkerRegistration';
 
-const outfit = Outfit({ subsets: ['latin'] });
+const outfit = Outfit({
+  subsets: ['latin'],
+  display: 'swap',
+  preload: true,
+  weight: ['400', '500', '600', '700'],
+});
 
 export const metadata: Metadata = {
   title: siteConfig.metadata.title,
@@ -33,7 +39,16 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      <head>
+        {/* Resource hints for faster loading */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="preload" as="image" href="/hero-animation/frame_001.jpg" />
+        <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
+      </head>
       <body className={`${outfit.className} bg-brand-darker text-gray-100 antialiased selection:bg-brand-accent selection:text-white`}>
+        {/* Scroll Sentinel for Navbar */}
+        <div id="nav-sentinel" className="absolute top-0 h-4 w-full pointer-events-none bg-transparent" />
         <Navbar />
         {/* Google Analytics - Optional */}
         {siteConfig.integrations.googleAnalyticsId && (
@@ -85,6 +100,7 @@ export default function RootLayout({
         {children}
         <Footer />
         <Analytics />
+        <ServiceWorkerRegistration />
       </body>
     </html>
   );

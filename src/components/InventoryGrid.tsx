@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 
@@ -28,6 +28,12 @@ interface InventoryGridProps {
 }
 
 export default function InventoryGrid({ vehicles, loading, title, subtitle }: InventoryGridProps) {
+    const [isMounted, setIsMounted] = useState(false);
+
+    useEffect(() => {
+        setIsMounted(true);
+    }, []);
+
     const formatPrice = (priceCents: number) => {
         return new Intl.NumberFormat('en-CA', { style: 'currency', currency: 'CAD', minimumFractionDigits: 0 }).format(priceCents / 100);
     };
@@ -65,8 +71,8 @@ export default function InventoryGrid({ vehicles, loading, title, subtitle }: In
                         {vehicles.map((vehicle, index) => (
                             <div
                                 key={vehicle.id}
-                                className="group premium-card rounded-2xl overflow-hidden relative"
-                                style={{ animationDelay: `${index * 100}ms` }}
+                                className="group premium-card rounded-2xl overflow-hidden relative gpu-layer"
+                                style={isMounted ? { animationDelay: `${index * 100}ms` } : {}}
                             >
                                 {/* Image Area */}
                                 <div className="relative aspect-[16/10] overflow-hidden bg-gray-800">

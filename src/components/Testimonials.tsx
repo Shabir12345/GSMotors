@@ -2,9 +2,7 @@
 
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Pagination, Autoplay } from 'swiper/modules';
-import 'swiper/css';
-import 'swiper/css/navigation';
-import 'swiper/css/pagination';
+import Image from 'next/image';
 
 interface Review {
     author: string;
@@ -63,50 +61,36 @@ export default function Testimonials({ reviews, loading, googleRating, totalRati
                     )}
                 </div>
 
-                <Swiper
-                    modules={[Navigation, Pagination, Autoplay]}
-                    spaceBetween={30}
-                    slidesPerView={1}
-                    breakpoints={{
-                        640: { slidesPerView: 1 },
-                        768: { slidesPerView: 2 },
-                        1024: { slidesPerView: 3 },
-                    }}
-                    autoplay={{ delay: 5000, disableOnInteraction: false }}
-                    pagination={{ clickable: true }}
-                    loop={true}
-                    className="pb-16"
-                >
+                {/* Swiper disabled for debugging */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pb-16">
                     {reviews.map((review, index) => (
-                        <SwiperSlide key={index}>
-                            <div className="h-full bg-white/5 backdrop-blur-md border border-white/5 rounded-2xl p-8 hover:border-brand-accent/30 transition-all duration-300">
-                                <div className="flex items-center space-x-4 mb-6">
-                                    {review.authorPhoto ? (
-                                        <img src={review.authorPhoto} alt={review.author} className="w-12 h-12 rounded-full ring-2 ring-brand-accent/20" />
-                                    ) : (
-                                        <div className="w-12 h-12 rounded-full bg-brand-accent/20 flex items-center justify-center text-brand-accent font-bold text-xl">
-                                            {review.author.charAt(0)}
-                                        </div>
-                                    )}
-                                    <div>
-                                        <h4 className="font-bold text-white">{review.author}</h4>
-                                        <p className="text-xs text-gray-400">{review.time}</p>
+                        <div key={index} className="h-full bg-white/5 backdrop-blur-md border border-white/5 rounded-2xl p-8 hover:border-brand-accent/30 transition-all duration-300">
+                            <div className="flex items-center space-x-4 mb-6">
+                                {review.authorPhoto ? (
+                                    <Image src={review.authorPhoto} alt={review.author} width={48} height={48} className="rounded-full ring-2 ring-brand-accent/20 object-cover" />
+                                ) : (
+                                    <div className="w-12 h-12 rounded-full bg-brand-accent/20 flex items-center justify-center text-brand-accent font-bold text-xl">
+                                        {review.author.charAt(0)}
                                     </div>
+                                )}
+                                <div>
+                                    <h4 className="font-bold text-white">{review.author}</h4>
+                                    <p className="text-xs text-gray-400">{review.time}</p>
                                 </div>
-
-                                <div className="flex mb-4 text-brand-highlight text-sm">
-                                    {[...Array(5)].map((_, i) => (
-                                        <span key={i} className={i < review.rating ? "text-yellow-400" : "text-gray-600"}>★</span>
-                                    ))}
-                                </div>
-
-                                <p className="text-gray-300 leading-relaxed italic opacity-90 line-clamp-4">
-                                    "{review.text}"
-                                </p>
                             </div>
-                        </SwiperSlide>
+
+                            <div className="flex mb-4 text-brand-highlight text-sm">
+                                {[...Array(5)].map((_, i) => (
+                                    <span key={i} className={i < review.rating ? "text-yellow-400" : "text-gray-600"}>★</span>
+                                ))}
+                            </div>
+
+                            <p className="text-gray-300 leading-relaxed italic opacity-90 line-clamp-4">
+                                "{review.text}"
+                            </p>
+                        </div>
                     ))}
-                </Swiper>
+                </div>
             </div>
         </section>
     );

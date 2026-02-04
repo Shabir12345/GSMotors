@@ -27,7 +27,7 @@ export default function TradeInSection() {
                         Ready for something new? We offer top market value for premium trade-ins and consignments. Skip the tire kickers and get an instant offer today.
                     </p>
 
-                    <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-8 max-w-3xl mx-auto shadow-2xl">
+                    <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-8 max-w-3xl mx-auto shadow-2xl gpu-layer">
                         <div className="grid md:grid-cols-3 gap-8 mb-8">
                             <div className="text-center">
                                 <div className="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">

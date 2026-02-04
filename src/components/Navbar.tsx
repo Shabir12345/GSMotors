@@ -8,13 +8,25 @@ import { siteConfig } from '@/siteConfig';
 export default function Navbar() {
     const [isScrolled, setIsScrolled] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
-        const handleScroll = () => {
-            setIsScrolled(window.scrollY > 20);
-        };
-        window.addEventListener('scroll', handleScroll);
-        return () => window.removeEventListener('scroll', handleScroll);
+        setMounted(true);
+
+        const sentinel = document.getElementById('nav-sentinel');
+        if (!sentinel) return;
+
+        const observer = new IntersectionObserver((entries) => {
+            for (const entry of entries) {
+                // If sentinel is interacting (visible at top), we are NOT scrolled.
+                // If sentinel is NOT intersecting (scrolled past), we ARE scrolled.
+                setIsScrolled(!entry.isIntersecting);
+            }
+        }, { threshold: 0 });
+
+        observer.observe(sentinel);
+
+        return () => observer.disconnect();
     }, []);
 
     const navLinks = [
@@ -35,7 +47,7 @@ export default function Navbar() {
                 <div className="container mx-auto px-4 md:px-6">
                     <nav className="flex items-center justify-between">
                         {/* Logo */}
-                        <Link href="/" className="relative z-50 transition-transform hover:scale-105">
+                        <Link href="/" prefetch={false} className="relative z-50 transition-transform hover:scale-105">
                             <span className="text-2xl font-bold font-display tracking-tighter text-white">
                                 GS<span className="text-brand-accent">Motors</span>
                             </span>
@@ -50,7 +62,6 @@ export default function Navbar() {
               */}
                         </Link>
 
-                        {/* Desktop Navigation */}
                         <div className="hidden md:flex items-center space-x-1 bg-white/5 backdrop-blur-md rounded-full px-2 py-1 border border-white/10">
                             {navLinks.map((link) => (
                                 <Link
@@ -66,7 +77,7 @@ export default function Navbar() {
                         {/* CTA Button */}
                         <div className="hidden md:block">
                             <Link
-                                href="#contact"
+                                href="/contact"
                                 className="btn-modern bg-brand-accent hover:bg-brand-accent-glow text-white px-6 py-2.5 rounded-full shadow-lg shadow-brand-accent/20 transition-all duration-300 transform hover:-translate-y-0.5"
                             >
                                 Book Viewing
@@ -113,7 +124,7 @@ export default function Navbar() {
                         style={{ transitionDelay: '600ms' }}
                     >
                         <Link
-                            href="#contact"
+                            href="/contact"
                             className="btn-modern bg-brand-accent text-white px-8 py-4 rounded-full text-lg shadow-xl shadow-brand-accent/30"
                             onClick={() => setIsMobileMenuOpen(false)}
                         >
