@@ -54,11 +54,12 @@ export default function InventoryGrid({ vehicles, loading, title, subtitle }: In
                     </div>
                 ) : vehicles.length > 0 ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                        {vehicles.map((vehicle) => (
+                        {vehicles.map((vehicle, index) => (
                             <VehicleCard
                                 key={vehicle.id}
                                 vehicle={vehicle}
                                 showPrice={!vehicle.isWholesale}
+                                priority={index < 3}
                             />
                         ))}
                     </div>

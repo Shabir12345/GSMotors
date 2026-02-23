@@ -7,10 +7,26 @@ import { formatPrice, formatMileage, formatBodyType, formatDrivetrain, formatFue
 import VehicleImageGallery from '@/components/VehicleImageGallery';
 import Logo from '@/components/Logo';
 import { siteConfig } from '@/siteConfig';
+import { prisma } from '@/lib/prisma';
 
 type Props = {
   params: { slug: string };
 };
+
+export async function generateStaticParams() {
+  try {
+    const vehicles = await prisma.vehicle.findMany({
+      where: { status: 'AVAILABLE' },
+      select: { seoSlug: true },
+    });
+    return vehicles.map((vehicle: any) => ({
+      slug: vehicle.seoSlug,
+    }));
+  } catch (error) {
+    console.error('Failed to generate static params:', error);
+    return [];
+  }
+}
 
 async function getVehicle(slug: string) {
   try {
@@ -22,7 +38,7 @@ async function getVehicle(slug: string) {
     }
 
     const response = await fetch(`${baseUrl}/api/vehicles/${slug}`, {
-      cache: 'no-store',
+      next: { revalidate: 60 },
     });
 
     if (!response.ok) return null;

@@ -7,7 +7,6 @@ import './globals.css';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { siteConfig } from '@/siteConfig';
-import ServiceWorkerRegistration from '@/components/ServiceWorkerRegistration';
 
 const outfit = Outfit({
   subsets: ['latin'],
@@ -106,7 +105,6 @@ export default function RootLayout({
         {children}
         <Footer />
         <Analytics />
-        <ServiceWorkerRegistration />
       </body>
     </html>
   );

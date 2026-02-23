@@ -1,15 +1,18 @@
 import Link from 'next/link';
 import { siteConfig } from '@/siteConfig';
 
-// Import components directly - they're already marked as 'use client'
-// Removing dynamic imports fixes webpack module resolution errors
+import dynamic from 'next/dynamic';
 import HeroScrollAnimation from '@/components/HeroScrollAnimation';
-import Testimonials from '@/components/Testimonials';
 import InventoryGrid from '@/components/InventoryGrid';
 import DynamicHeroText from '@/components/DynamicHeroText';
-import FinancingSection from '@/components/FinancingSection';
-import TradeInSection from '@/components/TradeInSection';
-import AboutUs from '@/components/AboutUs';
+
+// Dynamically import below-the-fold components to reduce initial JS payload
+const FinancingSection = dynamic(() => import('@/components/FinancingSection'), { ssr: true });
+const TradeInSection = dynamic(() => import('@/components/TradeInSection'), { ssr: true });
+const AboutUs = dynamic(() => import('@/components/AboutUs'), { ssr: true });
+const Testimonials = dynamic(() => import('@/components/Testimonials'), { ssr: true });
+
+export const revalidate = 60; // Enable ISR, revalidate every 60 seconds
 
 import { prisma } from '@/lib/prisma';
 import { MOCK_REVIEWS } from '@/data/mockData';

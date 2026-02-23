@@ -11,9 +11,10 @@ import { cn } from '@/lib/utils';
 type VehicleCardProps = {
     vehicle: any;
     showPrice?: boolean;
+    priority?: boolean;
 };
 
-export default function VehicleCard({ vehicle, showPrice = true }: VehicleCardProps) {
+export default function VehicleCard({ vehicle, showPrice = true, priority = false }: VehicleCardProps) {
     const [imageError, setImageError] = useState(false);
     const [isHovered, setIsHovered] = useState(false);
 
@@ -42,7 +43,7 @@ export default function VehicleCard({ vehicle, showPrice = true }: VehicleCardPr
                                 fill
                                 className="object-cover transition-opacity duration-500"
                                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                                priority={false}
+                                priority={priority}
                                 onError={() => setImageError(true)}
                             />
                         </motion.div>
