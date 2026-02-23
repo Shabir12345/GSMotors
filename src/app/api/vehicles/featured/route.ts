@@ -31,6 +31,9 @@ export async function GET(request: NextRequest) {
       where: {
         status: 'AVAILABLE',
         isFeatured: true,
+        isWholesale: false,
+        isAsIs: false,
+        isExport: false,
       },
       orderBy: { createdAt: 'desc' },
       take: limit,
@@ -65,35 +68,35 @@ export async function GET(request: NextRequest) {
     });
 
     console.log('Featured vehicles found:', featuredVehicles.length);
-    console.log('Featured vehicles details:', featuredVehicles.map(v => ({ 
-      id: v.id, 
-      title: v.title, 
+    console.log('Featured vehicles details:', featuredVehicles.map(v => ({
+      id: v.id,
+      title: v.title,
       make: v.make,
       model: v.model,
       year: v.year,
-      isFeatured: v.isFeatured 
+      isFeatured: v.isFeatured
     })));
 
     // Only return truly featured vehicles - don't add non-featured vehicles
     let vehicles = featuredVehicles;
-    
+
     // Log if we don't have enough featured vehicles
     if (vehicles.length < limit) {
       console.log(`WARNING: Only ${vehicles.length} featured vehicles found, but limit is ${limit}`);
       console.log('Consider marking more vehicles as featured in the admin panel');
     }
-    
+
     // Don't add non-featured vehicles - only show what's actually featured
     console.log('Returning only truly featured vehicles:', vehicles.length);
 
     console.log('Total vehicles returned:', vehicles.length);
-    console.log('Final vehicles list:', vehicles.map(v => ({ 
-      id: v.id, 
-      title: v.title, 
+    console.log('Final vehicles list:', vehicles.map(v => ({
+      id: v.id,
+      title: v.title,
       make: v.make,
       model: v.model,
       year: v.year,
-      isFeatured: v.isFeatured 
+      isFeatured: v.isFeatured
     })));
 
     return NextResponse.json<ApiResponse>(

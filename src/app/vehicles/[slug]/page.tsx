@@ -5,6 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { formatPrice, formatMileage, formatBodyType, formatDrivetrain, formatFuelType, formatTransmission } from '@/utils/formatters';
 import VehicleImageGallery from '@/components/VehicleImageGallery';
+import Logo from '@/components/Logo';
 import { siteConfig } from '@/siteConfig';
 
 type Props = {
@@ -111,23 +112,19 @@ export default async function VehicleDetailPage({ params }: Props) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
 
-      <div className="min-h-screen bg-gray-900">
-        {/* Header */}
-        <header className="bg-gray-800/90 backdrop-blur-sm border-b border-blue-500/20 sticky top-0 z-40">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center nav-mobile" style={{ height: '76px' }}>
-              <Link href="/" className="flex items-center">
-                <img
-                  src="/Logo.png"
-                  alt={`${siteConfig.name} Logo`}
-                  className="logo transition-transform duration-300"
-                />
+      <div className="min-h-screen bg-brand-dark">
+        {/* Header - Simple for mobile detail page */}
+        <header className="bg-brand-darker/90 backdrop-blur-xl border-b border-white/5 sticky top-0 z-40">
+          <div className="max-w-7xl mx-auto px-4">
+            <div className="flex justify-between items-center h-16 md:h-20">
+              <Link href="/" className="flex items-center -translate-y-[4mm]">
+                <Logo className="text-xl md:text-2xl" />
               </Link>
-              <nav className="flex gap-6">
-                <Link href="/" className="text-gray-300 hover:text-blue-400 transition-colors">
+              <nav className="flex gap-4 md:gap-6">
+                <Link href="/" className="text-xs md:text-sm font-bold text-gray-400 hover:text-brand-accent transition-colors uppercase tracking-widest">
                   Home
                 </Link>
-                <Link href="/inventory" className="text-gray-300 hover:text-blue-400 transition-colors">
+                <Link href="/inventory" className="text-xs md:text-sm font-bold text-gray-400 hover:text-brand-accent transition-colors uppercase tracking-widest">
                   Inventory
                 </Link>
               </nav>
@@ -135,34 +132,61 @@ export default async function VehicleDetailPage({ params }: Props) {
           </div>
         </header>
 
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {/* Breadcrumb */}
-          <nav className="flex items-center space-x-2 text-sm text-gray-400 mb-8">
-            <Link href="/" className="hover:text-blue-400 transition-colors">Home</Link>
-            <span>›</span>
-            <Link href="/inventory" className="hover:text-blue-400 transition-colors">Inventory</Link>
-            <span>›</span>
-            <span className="text-white">{vehicle.title}</span>
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-10">
+          {/* Breadcrumb - Better mobile spacing */}
+          <nav className="flex items-center space-x-2 text-[10px] md:text-xs text-gray-500 mb-6 md:mb-10 font-bold uppercase tracking-[0.1em] overflow-x-auto whitespace-nowrap pb-2 md:pb-0 scrollbar-hide">
+            <Link href="/" className="hover:text-brand-accent transition-colors">Home</Link>
+            <span className="text-gray-700">/</span>
+            <Link href="/inventory" className="hover:text-brand-accent transition-colors">Inventory</Link>
+            <span className="text-gray-700">/</span>
+            <span className="text-white truncate max-w-[150px] md:max-w-none">{vehicle.title}</span>
           </nav>
 
-          {/* Header Section */}
-          <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-3xl p-8 mb-8 border border-gray-700">
-            <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
-              <div className="flex-1">
-                <h1 className="text-4xl lg:text-5xl font-bold text-white leading-tight mb-4">
-                  {vehicle.title}
-                </h1>
-                <div className="flex items-center gap-4 flex-wrap mb-6">
-                  <div className="text-4xl font-bold bg-gradient-to-r from-blue-400 via-green-400 to-blue-400 bg-clip-text text-transparent">
-                    {formatPrice(vehicle.priceCents)}
+          {/* Header Section - Refined for Mobile */}
+          <div className="bg-gradient-to-br from-white/5 to-transparent rounded-2xl md:rounded-3xl p-6 md:p-10 mb-8 md:mb-12 border border-white/5 shadow-2xl">
+            <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
+              <div className="flex-1 min-w-0">
+                <div className="flex flex-col md:flex-row md:items-center gap-3 md:gap-6 mb-4 md:mb-6">
+                  <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold text-white leading-tight tracking-tight">
+                    {vehicle.title}
+                  </h1>
+                  <div className="flex flex-wrap gap-2">
+                    {vehicle.isAsIs && (
+                      <span className="bg-amber-600/20 text-amber-500 border border-amber-600/30 text-[9px] md:text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider">
+                        As Is
+                      </span>
+                    )}
+                    {vehicle.isWholesale && (
+                      <span className="bg-brand-accent/20 text-brand-accent border border-brand-accent/30 text-[9px] md:text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider">
+                        Wholesale
+                      </span>
+                    )}
+                    {vehicle.isExport && (
+                      <span className="bg-indigo-600/20 text-indigo-400 border border-indigo-600/30 text-[9px] md:text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider">
+                        Export
+                      </span>
+                    )}
                   </div>
                 </div>
-                <p className="text-gray-400 text-lg">
-                  {formatMileage(vehicle.odometerKm)} • {vehicle.year} • {vehicle.transmission || 'Automatic'}
-                </p>
+                <div className="flex items-center gap-4 flex-wrap mb-4 md:mb-0">
+                  {vehicle.isWholesale ? (
+                    <div className="text-2xl md:text-3xl font-bold text-gray-500 italic">
+                      Contact for Wholesale
+                    </div>
+                  ) : (
+                    <div className="text-3xl md:text-5xl font-black text-brand-accent text-glow">
+                      {formatPrice(vehicle.priceCents)}
+                    </div>
+                  )}
+                  <div className="h-8 w-px bg-white/10 hidden md:block mx-2"></div>
+                  <p className="text-gray-400 text-sm md:text-xl font-medium tracking-wide">
+                    {formatMileage(vehicle.odometerKm)} • {vehicle.year} • {vehicle.transmission || 'Auto'}
+                  </p>
+                </div>
               </div>
             </div>
           </div>
+
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Left Column - Image Gallery (Full Width on Mobile, 2/3 on Desktop) */}

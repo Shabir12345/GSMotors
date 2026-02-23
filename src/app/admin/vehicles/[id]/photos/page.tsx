@@ -1,12 +1,31 @@
 'use client';
 
-// Vehicle Photo Management Page
+// Vehicle Photo Management Page - Professional Redesign
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import AdminLayout from '@/components/AdminLayout';
+import { DndProvider } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  ArrowLeft,
+  Upload,
+  Trash2,
+  Plus,
+  AlertCircle,
+  CheckCircle,
+  Image as ImageIcon,
+  Save,
+  X,
+  RefreshCw,
+  Trophy
+} from 'lucide-react';
 import Link from 'next/link';
-import Image from 'next/image';
+
+import AdminLayout from '@/components/AdminLayout';
+import DraggablePhoto from '@/components/DraggablePhoto';
+import { cn } from '@/lib/utils';
+import { formatVehicleTitle } from '@/utils/formatters';
 
 interface Photo {
   id: string;
@@ -24,6 +43,7 @@ interface Vehicle {
   make: string;
   model: string;
   vin: string;
+  trim?: string;
 }
 
 export default function VehiclePhotosPage() {
@@ -35,6 +55,7 @@ export default function VehiclePhotosPage() {
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const [savingOrder, setSavingOrder] = useState(false);
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [uploadProgress, setUploadProgress] = useState({
@@ -43,6 +64,7 @@ export default function VehiclePhotosPage() {
     currentFileName: '',
   });
   const [deletingAll, setDeletingAll] = useState(false);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   useEffect(() => {
     fetchVehicle();
@@ -81,99 +103,103 @@ export default function VehiclePhotosPage() {
     }
   };
 
+  const movePhoto = useCallback((dragIndex: number, hoverIndex: number) => {
+    setPhotos((prevPhotos) => {
+      const newPhotos = [...prevPhotos];
+      const draggedPhoto = newPhotos[dragIndex];
+      newPhotos.splice(dragIndex, 1);
+      newPhotos.splice(hoverIndex, 0, draggedPhoto);
+
+      // Position #1 (index 0) always becomes primary dynamically
+      return newPhotos.map((p, idx) => ({
+        ...p,
+        sortOrder: idx,
+        isPrimary: idx === 0
+      }));
+    });
+    setHasUnsavedChanges(true);
+  }, []);
+
+  const saveOrder = async () => {
+    setSavingOrder(true);
+    setError('');
+
+    try {
+      const token = localStorage.getItem('authToken');
+
+      // We need to update each photo's sort order
+      // For efficiency, we can do this in parallel, but better would be a bulk endpoint
+      // Given your current API structure, we'll do sequential/parallel individual updates
+      const updatePromises = photos.map((photo, index) =>
+        fetch(`/api/admin/photos/${photo.id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            sortOrder: index,
+            isPrimary: index === 0 // Ensure index 0 is strictly primary on server
+          }),
+        })
+      );
+
+      await Promise.all(updatePromises);
+      setHasUnsavedChanges(false);
+      setSuccessMessage('Photo order saved successfully');
+      setTimeout(() => setSuccessMessage(''), 3000);
+    } catch (error) {
+      setError('Failed to save photo order');
+    } finally {
+      setSavingOrder(false);
+    }
+  };
+
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (!files || files.length === 0) return;
 
     const fileArray = Array.from(files);
 
-    // Client-side validation before upload
-    const allowedExtensions = ['.jpg', '.jpeg', '.png', '.webp', '.heic', '.heif'];
-    const maxSize = 20 * 1024 * 1024; // 20MB
-    const minSize = 100; // 100 bytes minimum
+    // Simple validation
+    const allowedExtensions = ['.jpg', '.jpeg', '.png', '.webp'];
+    const maxSize = 20 * 1024 * 1024;
 
     for (const file of fileArray) {
       const fileName = file.name.toLowerCase();
       const hasValidExtension = allowedExtensions.some(ext => fileName.endsWith(ext));
-
-      if (!hasValidExtension) {
-        setError(
-          `Invalid file type: ${file.name}. ` +
-          `Please upload JPEG, PNG, WebP, or HEIC images only. ` +
-          `If you selected a Live Photo, choose the still photo instead of the video clip.`
-        );
-        return;
-      }
-
-      if (file.size > maxSize) {
-        const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
-        setError(`File too large: ${file.name} (${sizeMB}MB). Maximum size is 20MB.`);
-        return;
-      }
-
-      if (file.size < minSize) {
-        setError(`File appears to be empty or corrupted: ${file.name}. Please select a valid image file.`);
+      if (!hasValidExtension || file.size > maxSize) {
+        setError(`Invalid file or file too large: ${file.name}`);
         return;
       }
     }
 
     setUploading(true);
     setError('');
-    setSuccessMessage('');
-    setUploadProgress({
-      current: 0,
-      total: fileArray.length,
-      currentFileName: '',
-    });
+    setUploadProgress({ current: 0, total: fileArray.length, currentFileName: '' });
 
-    const successfulUploads: string[] = [];
-    let uploadError: Error | null = null;
+    const token = localStorage.getItem('authToken');
+    let successfulCount = 0;
 
-    try {
-      const token = localStorage.getItem('authToken');
-      let photoCount = photos.length;
+    for (let i = 0; i < fileArray.length; i++) {
+      const file = fileArray[i];
+      setUploadProgress(prev => ({ ...prev, current: i, currentFileName: file.name }));
 
-      for (let i = 0; i < fileArray.length; i++) {
-        const file = fileArray[i];
+      try {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('vehicleId', vehicleId);
 
-        // Update progress - starting upload
-        setUploadProgress({
-          current: i,
-          total: fileArray.length,
-          currentFileName: file.name,
+        const uploadResponse = await fetch('/api/admin/upload', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` },
+          body: formData,
         });
 
-        try {
-          const formData = new FormData();
-          formData.append('file', file);
-          formData.append('vehicleId', vehicleId);
-
-          const uploadResponse = await fetch('/api/admin/upload', {
-            method: 'POST',
-            headers: { Authorization: `Bearer ${token}` },
-            body: formData,
-          });
-
-          if (!uploadResponse.ok) {
-            let errorMessage = `Upload failed with status ${uploadResponse.status} (File: ${file.name})`;
-            try {
-              const errorData = await uploadResponse.json();
-              if (errorData?.error) {
-                errorMessage = `${errorData.error} (File: ${file.name})`;
-              }
-            } catch {
-              // ignore JSON parse errors and fall back to default message
-            }
-            throw new Error(errorMessage);
-          }
-
-          const uploadData = await uploadResponse.json();
-          if (!uploadData.success) {
-            const errorMsg = uploadData.error || 'Upload failed';
-            throw new Error(`${errorMsg} (File: ${file.name})`);
-          }
-
-          const photoResponse = await fetch('/api/admin/photos', {
+        const uploadData = await uploadResponse.json();
+        if (uploadData.success) {
+          // Create photo record
+          await fetch('/api/admin/photos', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -183,105 +209,29 @@ export default function VehiclePhotosPage() {
               vehicleId,
               url: uploadData.data.url,
               altText: file.name,
-              sortOrder: photoCount + successfulUploads.length,
-              isPrimary: photoCount === 0 && successfulUploads.length === 0,
+              sortOrder: photos.length + successfulCount,
+              isPrimary: photos.length === 0 && successfulCount === 0,
             }),
           });
-
-          if (!photoResponse.ok) {
-            let errorMessage = `Failed to create photo record (status: ${photoResponse.status})`;
-            try {
-              const errorData = await photoResponse.json();
-              if (errorData?.error) {
-                errorMessage = errorData.error;
-              }
-            } catch {
-              // ignore JSON parse errors
-            }
-            console.warn('Photo record creation failed for uploaded file:', uploadData.data.url);
-            throw new Error(`${errorMessage} (File: ${file.name})`);
-          }
-
-          const photoData = await photoResponse.json();
-          if (!photoData.success) {
-            throw new Error(`${photoData.error || 'Failed to create photo record'} (File: ${file.name})`);
-          }
-
-          successfulUploads.push(file.name);
-
-          setUploadProgress({
-            current: i + 1,
-            total: fileArray.length,
-            currentFileName: file.name,
-          });
-        } catch (loopError) {
-          uploadError = loopError instanceof Error ? loopError : new Error('Upload failed');
-          break;
+          successfulCount++;
         }
+      } catch (err) {
+        console.error('Error uploading:', err);
       }
+    }
 
-      if (successfulUploads.length > 0) {
-        await fetchPhotos();
-        const pluralized = successfulUploads.length === 1 ? 'photo' : 'photos';
-        setSuccessMessage(
-          uploadError
-            ? `Uploaded ${successfulUploads.length} ${pluralized}, but encountered an error on a later file.`
-            : `Successfully uploaded ${successfulUploads.length} ${pluralized}.`
-        );
-      }
-
-      if (uploadError) {
-        let errorMessage = uploadError.message || 'Upload failed';
-        if (errorMessage.includes('Failed to fetch') || errorMessage.includes('NetworkError')) {
-          errorMessage = 'Network error. Please check your internet connection and try again.';
-        }
-        if (successfulUploads.length > 0) {
-          const pluralized = successfulUploads.length === 1 ? 'photo' : 'photos';
-          errorMessage += ` ${successfulUploads.length} ${pluralized} uploaded successfully before the error.`;
-        }
-        if (errorMessage.includes('pattern') || errorMessage.includes('match')) {
-          errorMessage = 'File validation failed. Please ensure you are uploading JPEG, PNG, WebP, or HEIC images.';
-        }
-        setError(errorMessage);
-      }
-
-      if (!uploadError && successfulUploads.length === 0) {
-        setSuccessMessage('No photos were uploaded.');
-      }
-    } catch (err) {
-      let errorMessage = 'Upload failed';
-      if (err instanceof Error) {
-        errorMessage = err.message;
-        if (err.message.includes('Failed to fetch') || err.message.includes('NetworkError')) {
-          errorMessage = 'Network error. Please check your internet connection and try again.';
-        }
-        if (err.message.includes('pattern') || err.message.includes('match')) {
-          errorMessage = 'File validation failed. Please ensure you are uploading JPEG, PNG, WebP, or HEIC images.';
-        }
-      }
-      setError(errorMessage);
-    } finally {
-      setUploading(false);
-      setTimeout(() => {
-        setUploadProgress({
-          current: 0,
-          total: 0,
-          currentFileName: '',
-        });
-      }, 500);
-
-      const fileInput = document.getElementById('photo-upload') as HTMLInputElement;
-      if (fileInput) {
-        fileInput.value = '';
-      }
+    setUploading(false);
+    setUploadProgress({ current: 0, total: 0, currentFileName: '' });
+    fetchPhotos();
+    if (successfulCount > 0) {
+      setSuccessMessage(`Successfully uploaded ${successfulCount} photos`);
+      setTimeout(() => setSuccessMessage(''), 3000);
     }
   };
 
   const handleSetPrimary = async (photoId: string) => {
     try {
       const token = localStorage.getItem('authToken');
-
-      // Set selected photo as primary (backend will handle unsetting others)
       const response = await fetch(`/api/admin/photos/${photoId}`, {
         method: 'PUT',
         headers: {
@@ -292,10 +242,27 @@ export default function VehiclePhotosPage() {
       });
 
       if (response.ok) {
-        await fetchPhotos();
+        // Move the newly primary photo to index 0 and reorder
+        setPhotos(prev => {
+          const photoIndex = prev.findIndex(p => p.id === photoId);
+          if (photoIndex === -1) return prev;
+
+          const newPhotos = [...prev];
+          const [photo] = newPhotos.splice(photoIndex, 1);
+          newPhotos.unshift(photo);
+
+          return newPhotos.map((p, idx) => ({
+            ...p,
+            sortOrder: idx,
+            isPrimary: idx === 0
+          }));
+        });
+        setHasUnsavedChanges(true);
+        setSuccessMessage('Primary photo updated and moved to first position');
+        setTimeout(() => setSuccessMessage(''), 3000);
       }
     } catch (error) {
-      console.error('Failed to set primary photo:', error);
+      setError('Failed to set primary photo');
     }
   };
 
@@ -310,22 +277,17 @@ export default function VehiclePhotosPage() {
       });
 
       if (response.ok) {
-        await fetchPhotos();
+        setPhotos(prev => prev.filter(p => p.id !== photoId));
       }
     } catch (error) {
-      console.error('Failed to delete photo:', error);
+      setError('Failed to delete photo');
     }
   };
 
   const handleDeleteAllPhotos = async () => {
-    if (photos.length === 0) return;
-
-    const message = `Are you sure you want to delete ALL ${photos.length} ${photos.length === 1 ? 'photo' : 'photos'} for this vehicle?\n\nThis action cannot be undone.`;
-    if (!confirm(message)) return;
+    if (!confirm('Confirm DELETE ALL photos for this vehicle? This is permanent.')) return;
 
     setDeletingAll(true);
-    setError('');
-
     try {
       const token = localStorage.getItem('authToken');
       const response = await fetch(`/api/admin/photos?vehicleId=${vehicleId}`, {
@@ -333,209 +295,257 @@ export default function VehiclePhotosPage() {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      const data = await response.json();
-      if (data.success) {
-        await fetchPhotos();
-      } else {
-        setError(data.error || 'Failed to delete all photos');
+      if (response.ok) {
+        setPhotos([]);
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete all photos');
+    } catch (error) {
+      setError('Failed to delete all photos');
     } finally {
       setDeletingAll(false);
     }
   };
 
-  if (loading) {
-    return (
-      <AdminLayout>
-        <div className="flex items-center justify-center h-64">
-          <div className="text-white">Loading...</div>
-        </div>
-      </AdminLayout>
-    );
-  }
-
   return (
     <AdminLayout>
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-white">Manage Photos</h1>
-            {vehicle && (
-              <p className="text-gray-400 mt-2">
-                {vehicle.year} {vehicle.make} {vehicle.model} - {vehicle.vin}
-              </p>
-            )}
-          </div>
-          <div className="flex gap-3">
-            {photos.length > 0 && (
-              <button
-                onClick={handleDeleteAllPhotos}
-                disabled={deletingAll || uploading}
-                className="bg-red-600 hover:bg-red-700 disabled:bg-red-800 disabled:opacity-50 disabled:cursor-not-allowed text-white px-4 py-2 rounded transition-colors flex items-center gap-2"
-              >
-                {deletingAll ? (
-                  <>
-                    <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Deleting...
-                  </>
-                ) : (
-                  <>
-                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                    Delete All Photos
-                  </>
-                )}
-              </button>
-            )}
+      {/* FORCE REFRESH INDICATOR */}
+      <div className="fixed top-24 left-1/2 -translate-x-1/2 z-[100] px-6 py-2 bg-brand-accent text-white font-black text-[10px] rounded-full shadow-2xl animate-bounce">
+        REDESIGNED MEDIA ENGINE ACTIVE v1.1
+      </div>
+
+      <div className="max-w-[1600px] mx-auto space-y-10">
+        {/* Navigation & Headline */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+          <div className="space-y-4">
             <Link
               href="/admin/vehicles"
-              className="btn-outline-modern"
+              className="inline-flex items-center gap-2 text-gray-500 hover:text-brand-accent transition-colors text-sm font-bold uppercase tracking-widest"
             >
-              Back to Vehicles
+              <ArrowLeft className="w-4 h-4" />
+              Inventory List
             </Link>
+            <div>
+              <h1 className="text-4xl font-black text-white tracking-tight">Manage Media - REDESIGNED</h1>
+              {vehicle && (
+                <div className="flex items-center gap-3 mt-2">
+                  <span className="px-3 py-1 bg-white/5 rounded-full text-xs font-bold text-gray-400 border border-white/5 uppercase tracking-widest">
+                    VIN: {vehicle.vin}
+                  </span>
+                  <div className="h-1 w-1 bg-gray-600 rounded-full" />
+                  <p className="text-brand-accent font-black uppercase tracking-widest text-sm">
+                    {formatVehicleTitle(vehicle.year, vehicle.make, vehicle.model, vehicle.trim)}
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="flex items-center gap-4">
+            {hasUnsavedChanges && (
+              <motion.button
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                onClick={saveOrder}
+                disabled={savingOrder}
+                className="btn-modern px-8 py-4 bg-brand-highlight hover:bg-green-500 text-white rounded-2xl gap-3 shadow-[0_0_20px_rgba(34,197,94,0.2)]"
+              >
+                {savingOrder ? <RefreshCw className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
+                <span>Save New Order</span>
+              </motion.button>
+            )}
+
+            <button
+              onClick={handleDeleteAllPhotos}
+              disabled={photos.length === 0 || deletingAll || uploading}
+              className="px-6 py-4 bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 rounded-2xl border border-rose-500/20 transition-all font-bold text-sm"
+            >
+              {deletingAll ? 'Deleting...' : 'Clear All'}
+            </button>
           </div>
         </div>
 
-        {/* Upload Section */}
-        <div className="bg-gray-800 rounded-lg border border-gray-700 p-6 mb-8">
-          <h2 className="text-xl font-semibold text-white mb-4">Upload Photos</h2>
-
+        {/* Global Notifications */}
+        <AnimatePresence>
           {error && (
-            <div className="bg-red-500/10 border border-red-500 text-red-500 px-4 py-3 rounded mb-4">
-              {error}
-            </div>
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="overflow-hidden"
+            >
+              <div className="bg-rose-500/10 border border-rose-500/20 text-rose-500 p-6 rounded-3xl flex items-center gap-4">
+                <AlertCircle className="w-6 h-6 flex-shrink-0" />
+                <span className="font-bold">{error}</span>
+                <button onClick={() => setError('')} className="ml-auto hover:bg-rose-500/20 p-2 rounded-xl">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </motion.div>
           )}
 
           {successMessage && (
-            <div className="bg-green-500/10 border border-green-500 text-green-400 px-4 py-3 rounded mb-4">
-              {successMessage}
-            </div>
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="overflow-hidden"
+            >
+              <div className="bg-brand-highlight/10 border border-brand-highlight/20 text-brand-highlight p-6 rounded-3xl flex items-center gap-4">
+                <CheckCircle className="w-6 h-6 flex-shrink-0" />
+                <span className="font-bold">{successMessage}</span>
+              </div>
+            </motion.div>
           )}
+        </AnimatePresence>
 
-          {/* Progress Indicator */}
-          {uploading && uploadProgress.total > 0 && (
-            <div className="bg-gray-900/50 rounded-lg border border-gray-700 p-6 mb-4">
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex-1">
-                  <p className="text-white font-medium">
-                    {uploadProgress.current === uploadProgress.total
-                      ? `Completed ${uploadProgress.total} ${uploadProgress.total === 1 ? 'photo' : 'photos'}`
-                      : `Uploading photo ${uploadProgress.current + 1} of ${uploadProgress.total}`}
-                  </p>
-                  {uploadProgress.currentFileName && uploadProgress.current < uploadProgress.total && (
-                    <p className="text-gray-400 text-sm mt-1 truncate">
+        {/* Upload Hub */}
+        <div className="bg-white/5 backdrop-blur-xl rounded-[40px] p-8 md:p-12 border border-white/10 shadow-2xl relative overflow-hidden">
+          <div className="absolute top-0 right-0 p-12 opacity-5 pointer-events-none">
+            <Upload className="w-48 h-48" />
+          </div>
+
+          <div className="flex flex-col lg:flex-row gap-12 items-center">
+            <div className="flex-1 space-y-4">
+              <h2 className="text-3xl font-black text-white">Upload New Photos</h2>
+              <p className="text-gray-400 font-medium">
+                Add high-quality photos of the vehicle. You can upload multiple files at once.
+                The first photo you upload or select will automatically become the <span className="text-brand-accent">Primary image</span>.
+              </p>
+              <div className="flex flex-wrap gap-4 pt-2">
+                <div className="flex items-center gap-2 px-4 py-2 bg-white/5 rounded-xl border border-white/5 text-[10px] text-gray-500 uppercase font-black tracking-widest">
+                  <ImageIcon className="w-3 h-3" /> JPG, PNG, WEBP
+                </div>
+                <div className="flex items-center gap-2 px-4 py-2 bg-white/5 rounded-xl border border-white/5 text-[10px] text-gray-500 uppercase font-black tracking-widest">
+                  <Plus className="w-3 h-3" /> Multiple Files
+                </div>
+              </div>
+            </div>
+
+            <div className="w-full lg:w-[400px]">
+              <input
+                type="file"
+                multiple
+                accept="image/*.heic,image/*.heif,image/jpeg,image/png,image/webp"
+                onChange={handleFileUpload}
+                disabled={uploading}
+                className="hidden"
+                id="photo-upload"
+              />
+              <label
+                htmlFor="photo-upload"
+                className={cn(
+                  "relative group flex flex-col items-center justify-center gap-6 p-12 border-4 border-dashed rounded-[32px] transition-all cursor-pointer",
+                  uploading ? "opacity-50 border-white/10" : "border-white/10 hover:border-brand-accent/50 hover:bg-brand-accent/5"
+                )}
+              >
+                {!uploading ? (
+                  <>
+                    <div className="w-20 h-20 rounded-full bg-brand-accent/10 flex items-center justify-center border border-brand-accent/20 group-hover:scale-110 group-hover:bg-brand-accent/20 transition-all duration-500">
+                      <Upload className="w-10 h-10 text-brand-accent" />
+                    </div>
+                    <div className="text-center">
+                      <p className="text-white font-black uppercase tracking-widest text-sm">Drop files or click</p>
+                      <p className="text-gray-500 text-xs mt-1">Maximum 20MB per file</p>
+                    </div>
+                  </>
+                ) : (
+                  <div className="w-full space-y-6">
+                    <div className="flex justify-between items-center text-xs font-black uppercase tracking-widest text-brand-accent">
+                      <span>Uploading...</span>
+                      <span>{Math.round((uploadProgress.current / uploadProgress.total) * 100)}%</span>
+                    </div>
+                    <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
+                      <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: `${(uploadProgress.current / uploadProgress.total) * 100}%` }}
+                        className="h-full bg-brand-accent"
+                      />
+                    </div>
+                    <p className="text-gray-500 text-[10px] uppercase font-bold text-center truncate px-4">
                       {uploadProgress.currentFileName}
                     </p>
-                  )}
-                </div>
-                <div className="text-white font-medium ml-4">
-                  {Math.round((uploadProgress.current / uploadProgress.total) * 100)}%
-                </div>
-              </div>
-              <div className="w-full bg-gray-700 rounded-full h-3 overflow-hidden">
-                <div
-                  className="bg-gradient-to-r from-blue-500 to-blue-600 h-full rounded-full transition-all duration-300 ease-out"
-                  style={{
-                    width: `${Math.min((uploadProgress.current / uploadProgress.total) * 100, 100)}%`,
-                  }}
-                />
-              </div>
+                  </div>
+                )}
+              </label>
             </div>
-          )}
-
-          <div className="border-2 border-dashed border-gray-600 rounded-lg p-8 text-center">
-            <input
-              type="file"
-              multiple
-              accept="image/jpeg,image/jpg,image/png,image/webp,image/heic,image/heif"
-              onChange={(e) => {
-                handleFileUpload(e);
-                // Reset input to allow re-uploading the same file
-                e.target.value = '';
-              }}
-              disabled={uploading}
-              className="hidden"
-              id="photo-upload"
-            />
-            <label
-              htmlFor="photo-upload"
-              className={`cursor-pointer ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
-            >
-              <div className="text-gray-400 mb-4">
-                <svg className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                </svg>
-              </div>
-              <p className="text-white font-medium">
-                {uploading ? 'Uploading...' : 'Click to upload photos'}
-              </p>
-              <p className="text-gray-400 text-sm mt-2">
-                JPEG, PNG, WebP, HEIC up to 20MB each
-              </p>
-              <p className="text-gray-500 text-xs mt-1">
-                Live Photos are supported automatically (select the still photo when prompted)
-              </p>
-            </label>
           </div>
         </div>
 
-        {/* Photos Grid */}
-        {photos.length === 0 ? (
-          <div className="bg-gray-800 rounded-lg border border-gray-700 p-8 text-center">
-            <div className="text-gray-400 mb-4">
-              <svg className="mx-auto h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
+        {/* Gallery Engine */}
+        <div className="space-y-6">
+          <div className="flex items-center justify-between px-4">
+            <div className="flex items-center gap-4">
+              <h2 className="text-2xl font-black text-white uppercase tracking-tight">Vehicle Gallery</h2>
+              {photos.length > 0 && (
+                <span className="px-3 py-1 bg-brand-accent/10 border border-brand-accent/20 text-brand-accent text-[10px] font-black uppercase tracking-widest rounded-full">
+                  {photos.length} Photos
+                </span>
+              )}
             </div>
-            <h3 className="text-white text-lg font-medium mb-2">No Photos Yet</h3>
-            <p className="text-gray-400">Upload some photos to get started</p>
+            {photos.length > 1 && (
+              <p className="text-gray-500 text-xs font-bold uppercase tracking-widest hidden md:block">
+                Drag to Reorder • Select Star for Primary
+              </p>
+            )}
           </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {photos.map((photo) => (
-              <div key={photo.id} className="bg-gray-800 rounded-lg border border-gray-700 overflow-hidden">
-                <div className="relative">
-                  <Image
-                    src={photo.url}
-                    alt={photo.altText || 'Vehicle photo'}
-                    fill
-                    className="object-cover"
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                  />
-                  {photo.isPrimary && (
-                    <div className="absolute top-2 left-2 bg-green-500 text-white px-2 py-1 rounded text-xs font-medium">
-                      Primary
-                    </div>
-                  )}
-                </div>
-                <div className="p-4">
-                  <div className="flex gap-2">
-                    {!photo.isPrimary && (
-                      <button
-                        onClick={() => handleSetPrimary(photo.id)}
-                        className="flex-1 btn-modern text-sm"
-                      >
-                        Set Primary
-                      </button>
-                    )}
-                    <button
-                      onClick={() => handleDeletePhoto(photo.id)}
-                      className="flex-1 bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded text-sm transition-colors"
-                    >
-                      Delete
-                    </button>
-                  </div>
-                </div>
+
+          {loading ? (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+              {[1, 2, 3, 4, 5].map(i => (
+                <div key={i} className="aspect-[4/3] bg-white/5 rounded-2xl animate-pulse" />
+              ))}
+            </div>
+          ) : photos.length === 0 ? (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-white/5 border border-white/10 rounded-[40px] p-20 text-center space-y-6"
+            >
+              <div className="w-24 h-24 bg-white/5 rounded-full flex items-center justify-center mx-auto border border-white/10">
+                <ImageIcon className="w-10 h-10 text-gray-700" />
               </div>
-            ))}
-          </div>
+              <div className="space-y-2">
+                <h3 className="text-2xl font-black text-white">No photos in gallery</h3>
+                <p className="text-gray-500 max-w-sm mx-auto">Upload your first image to begin building the presentation for this listing.</p>
+              </div>
+            </motion.div>
+          ) : (
+            <DndProvider backend={HTML5Backend}>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+                {photos.map((photo, index) => (
+                  <DraggablePhoto
+                    key={photo.id}
+                    index={index}
+                    photo={photo}
+                    movePhoto={movePhoto}
+                    onDelete={handleDeletePhoto}
+                    onSetPrimary={handleSetPrimary}
+                  />
+                ))}
+              </div>
+            </DndProvider>
+          )}
+        </div>
+
+        {/* Bulk Footer Action */}
+        {hasUnsavedChanges && !savingOrder && (
+          <motion.div
+            initial={{ y: 100 }}
+            animate={{ y: 0 }}
+            className="fixed bottom-8 left-0 right-0 z-50 px-4 pointer-events-none"
+          >
+            <div className="max-w-md mx-auto bg-brand-highlight/90 backdrop-blur-2xl border border-white/10 p-4 rounded-3xl shadow-2xl flex items-center justify-between pointer-events-auto">
+              <div className="flex items-center gap-3 pl-2">
+                <Trophy className="w-5 h-5 text-white" />
+                <span className="text-sm font-black text-white uppercase tracking-widest">Unsaved Changes</span>
+              </div>
+              <button
+                onClick={saveOrder}
+                className="px-6 py-3 bg-white text-brand-highlight hover:bg-gray-100 rounded-2xl font-black text-sm transition-all active:scale-95"
+              >
+                Sync to Server
+              </button>
+            </div>
+          </motion.div>
         )}
       </div>
     </AdminLayout>

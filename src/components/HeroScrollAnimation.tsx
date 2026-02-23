@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { HeroScrollContext } from '@/components/HeroScrollContext';
 import HeroLoadingPlaceholder from '@/components/HeroLoadingPlaceholder';
+// import Logo from './Logo';
 
 
 interface HeroScrollAnimationProps {
@@ -27,6 +28,10 @@ export default function HeroScrollAnimation({
     const [progress, setProgress] = useState(0);
     const [currentFrame, setCurrentFrame] = useState(0);
     const [hasError, setHasError] = useState(false);
+    const dimensionsRef = useRef({ height: 0, top: 0 });
+    const targetProgressRef = useRef(0);
+    const currentProgressRef = useRef(0);
+    const isVisibleRef = useRef(false);
 
     useEffect(() => {
         setIsMounted(true);
@@ -232,57 +237,66 @@ export default function HeroScrollAnimation({
         renderFrame(0);
 
         const handleScroll = () => {
-            if (isScrolling) return;
+            const scrollTop = window.scrollY;
+            const offsetTop = dimensionsRef.current.top;
+            const containerHeight = dimensionsRef.current.height;
+            const windowHeight = window.innerHeight;
 
-            isScrolling = true;
+            const relativeScroll = scrollTop - offsetTop;
+            const scrollableDistance = containerHeight - windowHeight;
 
-            if (rafId !== null) {
-                cancelAnimationFrame(rafId);
+            if (scrollableDistance <= 0) return;
+
+            const progress = Math.max(0, Math.min(1, relativeScroll / scrollableDistance));
+            targetProgressRef.current = progress;
+        };
+
+        const animate = () => {
+            if (!isVisibleRef.current) return;
+
+            // Silky smooth lerp (Linear Interpolation)
+            // current = current + (target - current) * factor
+            // Tuned to 0.065 for a "heavier", more premium car-like momentum
+            const lerpFactor = 0.065;
+
+            const diff = targetProgressRef.current - currentProgressRef.current;
+
+            // Only update if there's a meaningful difference
+            if (Math.abs(diff) > 0.0001) {
+                currentProgressRef.current += diff * lerpFactor;
+            } else {
+                currentProgressRef.current = targetProgressRef.current;
             }
 
-            rafId = requestAnimationFrame(() => {
-                const container = containerRef.current;
-                if (!container) {
-                    isScrolling = false;
-                    return;
-                }
+            const frameIndex = currentProgressRef.current * (frameCount - 1);
 
-                const rect = container.getBoundingClientRect();
-                const windowHeight = window.innerHeight;
+            // Only update state if progress changed significantly or we're not snapped
+            // We use refs for progress and currentFrame to provide to context if needed, 
+            // but for the canvas we just render.
+            setProgress(currentProgressRef.current);
+            setCurrentFrame(Math.round(frameIndex));
+            renderFrame(frameIndex);
 
-                const scrollableDistance = rect.height - windowHeight;
-                if (scrollableDistance <= 0) {
-                    isScrolling = false;
-                    return;
-                }
-
-                const rawProgress = -rect.top / scrollableDistance;
-                const progress = Math.max(0, Math.min(1, rawProgress));
-
-                const frameIndex = progress * (frameCount - 1);
-                setProgress(progress);
-                setCurrentFrame(Math.round(frameIndex));
-
-                renderFrame(frameIndex);
-                isScrolling = false;
-            });
+            rafId = requestAnimationFrame(animate);
         };
 
         // Intersection observer to only animate when visible
         const observer = new IntersectionObserver(
             (entries) => {
                 entries.forEach((entry) => {
+                    isVisibleRef.current = entry.isIntersecting;
                     if (entry.isIntersecting) {
-                        // Only listen to scroll when element is in view
                         window.addEventListener('scroll', handleScroll, { passive: true });
                         handleScroll(); // Initial sync
+                        if (rafId) cancelAnimationFrame(rafId);
+                        rafId = requestAnimationFrame(animate);
                     } else {
-                        // Stop listening when out of view to save resources
                         window.removeEventListener('scroll', handleScroll);
+                        if (rafId) cancelAnimationFrame(rafId);
                     }
                 });
             },
-            { threshold: 0 } // Trigger when even 1 pixel is visible
+            { threshold: 0 }
         );
 
         if (containerRef.current) {
@@ -290,9 +304,16 @@ export default function HeroScrollAnimation({
         }
 
         const updateCanvasSize = () => {
-            if (canvasRef.current && canvasRef.current.parentElement) {
+            if (canvasRef.current && canvasRef.current.parentElement && containerRef.current) {
                 const parentRect = canvasRef.current.parentElement.getBoundingClientRect();
+                const containerRect = containerRef.current.getBoundingClientRect();
                 const dpr = window.devicePixelRatio || 1;
+
+                // Cache dimensions to avoid layout thrashing during scroll
+                dimensionsRef.current = {
+                    height: containerRect.height,
+                    top: containerRect.top + window.scrollY
+                };
 
                 canvasRef.current.width = parentRect.width * dpr;
                 canvasRef.current.height = parentRect.height * dpr;
@@ -328,7 +349,7 @@ export default function HeroScrollAnimation({
         return (
             <div className="relative w-full h-screen bg-black flex items-center justify-center">
                 <div className="text-center">
-                    <h1 className="text-4xl md:text-6xl font-bold text-white mb-4">GS Motors</h1>
+                    <h1 className="text-4xl md:text-6xl font-bold text-white mb-4">GSMotorsinc</h1>
                     <p className="text-xl text-gray-400">Loading experience...</p>
                 </div>
             </div>
@@ -342,7 +363,7 @@ export default function HeroScrollAnimation({
                     {!isMounted ? (
                         <div className="absolute inset-0 flex items-center justify-center bg-black text-white">
                             <div className="text-center">
-                                <h1 className="text-4xl md:text-6xl font-bold mb-4">GS Motors</h1>
+                                <h1 className="text-4xl md:text-6xl font-bold mb-4">GSMotorsinc</h1>
                                 <p className="text-xl text-gray-400">Loading Experience...</p>
                             </div>
                         </div>

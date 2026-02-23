@@ -11,10 +11,45 @@ import FinancingSection from '@/components/FinancingSection';
 import TradeInSection from '@/components/TradeInSection';
 import AboutUs from '@/components/AboutUs';
 
-import { MOCK_VEHICLES, MOCK_REVIEWS } from '@/data/mockData';
+import { prisma } from '@/lib/prisma';
+import { MOCK_REVIEWS } from '@/data/mockData';
 
 async function getFeaturedVehicles() {
-  return MOCK_VEHICLES.filter(v => v.isFeatured).slice(0, 3);
+  try {
+    const vehicles = await prisma.vehicle.findMany({
+      where: {
+        isFeatured: true,
+        status: 'AVAILABLE',
+        isWholesale: false,
+        isAsIs: false,
+        isExport: false
+      } as any,
+      take: 3,
+      orderBy: {
+        createdAt: 'desc'
+      },
+      include: {
+        photos: {
+          where: { isPrimary: true },
+          take: 1
+        }
+      }
+    });
+
+    // Map Prisma models to the UI interface
+    return vehicles.map((v: any) => ({
+      ...v,
+      transmission: v.transmission || undefined,
+      exteriorColor: v.exteriorColor || undefined,
+      isAsIs: !!v.isAsIs,
+      isExport: !!v.isExport,
+      isWholesale: !!v.isWholesale,
+      photos: v.photos.map((p: any) => ({ url: p.url }))
+    }));
+  } catch (error) {
+    console.error('Failed to fetch featured vehicles:', error);
+    return [];
+  }
 }
 
 async function getGoogleReviews() {
@@ -29,6 +64,7 @@ async function getGoogleReviews() {
 export default async function HomePage() {
   const featuredVehicles = await getFeaturedVehicles();
   const googleReviews = await getGoogleReviews();
+
 
   return (
     <main className="bg-black min-h-screen">
@@ -67,7 +103,66 @@ export default async function HomePage() {
           </Link>
         </div>
       </div>
+      {/* Specialized Inventory Categories */}
+      <section className="section-padding bg-brand-darker relative overflow-hidden">
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="text-center mb-12 md:mb-16">
+            <h2 className="text-3xl md:text-5xl font-bold text-white mb-4 md:mb-6 font-display tracking-tight">
+              Exclusive <span className="text-brand-accent">Inventory</span>
+            </h2>
+            <p className="text-gray-400 max-w-2xl mx-auto text-base md:text-lg px-4">
+              Explore our specialized collections tailored for specific buyer needs. From wholesale dealer units to international export solutions.
+            </p>
+          </div>
 
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
+            {/* Wholesale Card */}
+            <Link href="/wholesale" className="group relative h-[300px] md:h-[400px] rounded-3xl overflow-hidden border border-white/5 hover:border-brand-accent/50 transition-all duration-500 shadow-2xl shadow-brand-accent/5">
+              <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1550355291-bbee04a92027?q=80&w=2672&auto=format&fit=crop')] bg-cover bg-center group-hover:scale-110 transition-transform duration-1000"></div>
+              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent"></div>
+              <div className="absolute inset-0 p-6 md:p-8 flex flex-col justify-end">
+                <span className="text-brand-accent text-[10px] font-black uppercase tracking-[0.2em] mb-2">B2B Network</span>
+                <h3 className="text-2xl md:text-3xl font-bold text-white mb-2 md:mb-3">Wholesale Direct</h3>
+                <p className="text-gray-300 text-sm md:text-base transform group-hover:-translate-y-2 transition-transform line-clamp-2">Exclusive dealer inventory with competitive transfer rates.</p>
+                <div className="mt-4 flex items-center text-white/50 group-hover:text-brand-accent font-bold transition-colors text-xs md:text-sm">
+                  <span>Enter Portal</span>
+                  <svg className="w-5 h-5 ml-2 group-hover:translate-x-2 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
+                </div>
+              </div>
+            </Link>
+
+            {/* Export Card */}
+            <Link href="/export" className="group relative h-[300px] md:h-[400px] rounded-3xl overflow-hidden border border-white/5 hover:border-indigo-500/50 transition-all duration-500 shadow-2xl shadow-indigo-500/5">
+              <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?q=80&w=2669&auto=format&fit=crop')] bg-cover bg-center group-hover:scale-110 transition-transform duration-1000"></div>
+              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent"></div>
+              <div className="absolute inset-0 p-6 md:p-8 flex flex-col justify-end">
+                <span className="text-indigo-400 text-[10px] font-black uppercase tracking-[0.2em] mb-2">Global Logistics</span>
+                <h3 className="text-2xl md:text-3xl font-bold text-white mb-2 md:mb-3">International Export</h3>
+                <p className="text-gray-300 text-sm md:text-base transform group-hover:-translate-y-2 transition-transform line-clamp-2">Worldwide shipping solutions and export-ready inventory.</p>
+                <div className="mt-4 flex items-center text-white/50 group-hover:text-indigo-400 font-bold transition-colors text-xs md:text-sm">
+                  <span>View Units</span>
+                  <svg className="w-5 h-5 ml-2 group-hover:translate-x-2 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
+                </div>
+              </div>
+            </Link>
+
+            {/* As Is Card */}
+            <Link href="/as-is" className="group relative h-[300px] md:h-[400px] rounded-3xl overflow-hidden border border-white/5 hover:border-amber-500/50 transition-all duration-500 shadow-2xl shadow-amber-500/5">
+              <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?q=80&w=2766&auto=format&fit=crop')] bg-cover bg-center group-hover:scale-110 transition-transform duration-1000"></div>
+              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent"></div>
+              <div className="absolute inset-0 p-6 md:p-8 flex flex-col justify-end">
+                <span className="text-amber-500 text-[10px] font-black uppercase tracking-[0.2em] mb-2">Value Collection</span>
+                <h3 className="text-2xl md:text-3xl font-bold text-white mb-2 md:mb-3">'As Is' Specials</h3>
+                <p className="text-gray-300 text-sm md:text-base transform group-hover:-translate-y-2 transition-transform line-clamp-2">Budget-friendly project units and high-value project cars.</p>
+                <div className="mt-4 flex items-center text-white/50 group-hover:text-amber-500 font-bold transition-colors text-xs md:text-sm">
+                  <span>Explore Sales</span>
+                  <svg className="w-5 h-5 ml-2 group-hover:translate-x-2 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
+                </div>
+              </div>
+            </Link>
+          </div>
+        </div>
+      </section>
 
 
       {/* Financing Section */}
@@ -77,36 +172,37 @@ export default async function HomePage() {
       <TradeInSection />
 
       {/* Services Section */}
-      <section id="services" className="py-24 bg-brand-dark relative overflow-hidden">
+      <section id="services" className="section-padding bg-brand-dark relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-transparent to-brand-darker/50 pointer-events-none" />
         <div className="container mx-auto px-4 relative z-10">
-          <div className="grid md:grid-cols-3 gap-12">
-            <div className="p-8 rounded-3xl bg-gradient-to-br from-white/5 to-transparent border border-white/5 hover:border-brand-accent/30 transition-all duration-300 group">
-              <div className="w-14 h-14 bg-brand-accent/20 rounded-2xl flex items-center justify-center mb-6 text-brand-accent group-hover:scale-110 transition-transform">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
+            <div className="p-8 rounded-3xl bg-gradient-to-br from-white/5 to-transparent border border-white/5 hover:border-brand-accent/30 transition-all duration-500 group shadow-xl">
+              <div className="w-14 h-14 bg-brand-accent/20 rounded-2xl flex items-center justify-center mb-6 text-brand-accent group-hover:scale-110 transition-transform shadow-lg shadow-brand-accent/10">
                 <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
               </div>
-              <h3 className="text-2xl font-bold text-white mb-4">Certified Quality</h3>
-              <p className="text-gray-400">Every vehicle undergoes a rigorous 150-point inspection. We only sell cars we'd drive ourselves.</p>
+              <h3 className="text-xl md:text-2xl font-bold text-white mb-4">Certified Quality</h3>
+              <p className="text-gray-400 text-sm md:text-base leading-relaxed">Every vehicle undergoes a rigorous 150-point inspection. We only sell cars we'd drive ourselves.</p>
             </div>
 
-            <div className="p-8 rounded-3xl bg-gradient-to-br from-white/5 to-transparent border border-white/5 hover:border-brand-highlight/30 transition-all duration-300 group">
-              <div className="w-14 h-14 bg-brand-highlight/20 rounded-2xl flex items-center justify-center mb-6 text-brand-highlight group-hover:scale-110 transition-transform">
+            <div className="p-8 rounded-3xl bg-gradient-to-br from-white/5 to-transparent border border-white/5 hover:border-brand-highlight/30 transition-all duration-500 group shadow-xl">
+              <div className="w-14 h-14 bg-brand-highlight/20 rounded-2xl flex items-center justify-center mb-6 text-brand-highlight group-hover:scale-110 transition-transform shadow-lg shadow-brand-highlight/10">
                 <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" /></svg>
               </div>
-              <h3 className="text-2xl font-bold text-white mb-4">Transparent Pricing</h3>
-              <p className="text-gray-400">No hidden fees, no surprise add-ons. The price you see is the price you pay, plus tax and licensing.</p>
+              <h3 className="text-xl md:text-2xl font-bold text-white mb-4">Transparent Pricing</h3>
+              <p className="text-gray-400 text-sm md:text-base leading-relaxed">No hidden fees, no surprise add-ons. The price you see is the price you pay, plus tax and licensing.</p>
             </div>
 
-            <div className="p-8 rounded-3xl bg-gradient-to-br from-white/5 to-transparent border border-white/5 hover:border-purple-500/30 transition-all duration-300 group">
-              <div className="w-14 h-14 bg-purple-500/20 rounded-2xl flex items-center justify-center mb-6 text-purple-400 group-hover:scale-110 transition-transform">
+            <div className="p-8 rounded-3xl bg-gradient-to-br from-white/5 to-transparent border border-white/5 hover:border-purple-500/30 transition-all duration-500 group shadow-xl">
+              <div className="w-14 h-14 bg-purple-500/20 rounded-2xl flex items-center justify-center mb-6 text-purple-400 group-hover:scale-110 transition-transform shadow-lg shadow-purple-500/10">
                 <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
               </div>
-              <h3 className="text-2xl font-bold text-white mb-4">Stress-Free Experience</h3>
-              <p className="text-gray-400">Our non-commissioned sales staff are here to help you find the right car, not just sell you one.</p>
+              <h3 className="text-xl md:text-2xl font-bold text-white mb-4">Stress-Free Experience</h3>
+              <p className="text-gray-400 text-sm md:text-base leading-relaxed">Our non-commissioned sales staff are here to help you find the right car, not just sell you one.</p>
             </div>
           </div>
         </div>
       </section>
+
 
       {/* About Us */}
       <AboutUs />

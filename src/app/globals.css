@@ -3,9 +3,8 @@
 @tailwind utilities;
 
 /* Swiper CSS - imported globally to avoid dynamic loading conflicts */
-@import 'swiper/css';
-@import 'swiper/css/navigation';
-@import 'swiper/css/pagination';
+/* Swiper CSS - Using bundle for Swiper v12 compatibility */
+@import 'swiper/swiper-bundle.css';
 
 @layer base {
   :root {
@@ -21,6 +20,11 @@
 
   html {
     scroll-behavior: smooth;
+    overscroll-behavior-y: none;
+    /* Prevents elastic bounce-back which kills immersion */
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -45,9 +49,16 @@
   }
 
   h1 {
-    font-size: 3rem;
-    line-height: 1;
+    font-size: 2.5rem;
+    /* Reduced from 3rem for better mobile fit */
+    line-height: 1.1;
     letter-spacing: -0.025em;
+  }
+
+  @media (min-width: 640px) {
+    h1 {
+      font-size: 3.5rem;
+    }
   }
 
   @media (min-width: 768px) {
@@ -57,19 +68,25 @@
   }
 
   h2 {
-    font-size: 2.25rem;
-    line-height: 2.5rem;
+    font-size: 2rem;
+    /* Reduced from 2.25rem */
+    line-height: 1.2;
     letter-spacing: -0.025em;
   }
 
   @media (min-width: 768px) {
     h2 {
       font-size: 3rem;
+      line-height: 2.5rem;
     }
   }
 }
 
 @layer utilities {
+  .section-padding {
+    @apply py-16 md:py-24;
+  }
+
   .text-glow {
     text-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
   }
@@ -143,7 +160,41 @@
     backface-visibility: hidden;
   }
 
-  /* GPU acceleration for animations */
+  /* Custom Scrollbar for premium feel */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(59, 130, 246, 0.3);
+    /* brand-accent with low opacity */
+  }
+
+  /* Prevent gray tap highlight on mobile */
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Safe areas for notched phones */
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .pt-safe {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  /* Animation logic */
   @keyframes fadeIn {
     from {
       opacity: 0;

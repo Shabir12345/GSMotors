@@ -38,12 +38,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         {/* Resource hints for faster loading */}
         <link rel="preconnect" href="https://fonts.googleapis.com" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link rel="preload" as="image" href="/images/hero-scroll/frame_000.jpg" />
+
         <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
       </head>
       <body className={`${outfit.className} bg-brand-darker text-gray-100 antialiased selection:bg-brand-accent selection:text-white`}>

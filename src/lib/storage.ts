@@ -92,6 +92,12 @@ const PUBLIC_URL = isR2Config
   ? (process.env.R2_PUBLIC_URL || `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com/${BUCKET_NAME}`)
   : (process.env.R2_PUBLIC_URL || `https://${BUCKET_NAME}.s3.amazonaws.com`);
 
+if (isR2Config && PUBLIC_URL.includes('cloudflarestorage.com')) {
+  console.warn('⚠️ R2_PUBLIC_URL is using the S3 API endpoint. Images will not be visible in browsers. Please set R2_PUBLIC_URL to your public bucket domain (e.g., https://pub-xxx.r2.dev)');
+}
+
+console.log('Final Public URL Configuration:', PUBLIC_URL);
+
 export type ImageSize = {
   width?: number;
   height?: number;

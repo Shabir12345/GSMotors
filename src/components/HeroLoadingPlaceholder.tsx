@@ -1,4 +1,5 @@
 import React from 'react';
+// import Logo from './Logo';
 
 interface HeroLoadingPlaceholderProps {
   progress?: number;
@@ -19,7 +20,7 @@ export default function HeroLoadingPlaceholder({ progress = 0 }: HeroLoadingPlac
       <div className="relative z-10 text-center px-4 animate-in fade-in slide-in-from-bottom-4 duration-1000">
         <div className="mb-8">
           <h1 className="text-5xl md:text-7xl font-bold text-white mb-4">
-            GS Motors
+            GSMotors<span className="text-brand-accent">inc</span>
           </h1>
           <p className="text-xl md:text-2xl text-gray-400 opacity-80">
             Loading Premium Experience...

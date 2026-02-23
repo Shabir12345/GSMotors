@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
     console.log('Received vehicle data:', JSON.stringify(body, null, 2));
-    
+
     const validation = createVehicleSchema.safeParse(body);
 
     if (!validation.success) {
@@ -138,13 +138,28 @@ export async function GET(request: NextRequest) {
     }, { status: 200 });
   } catch (error) {
     console.error('Admin list vehicles error:', error);
-    console.error('Error details:', {
-      message: (error as any)?.message,
-      code: (error as any)?.code,
-      name: (error as any)?.name,
+
+    // Check for specific Prisma errors
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    const errorCode = (error as any)?.code;
+
+    console.error('Error Details:', {
+      message: errorMessage,
+      code: errorCode,
       stack: (error as any)?.stack,
     });
-    return NextResponse.json<ApiResponse>({ success: false, error: 'Internal server error' }, { status: 500 });
+
+    if (errorCode === 'P2021') {
+      return NextResponse.json<ApiResponse>({
+        success: false,
+        error: 'Database table not found. Please run prisma db push.'
+      }, { status: 500 });
+    }
+
+    return NextResponse.json<ApiResponse>({
+      success: false,
+      error: `Internal server error: ${errorMessage.substring(0, 100)}`
+    }, { status: 500 });
   }
 }
 

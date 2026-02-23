@@ -46,30 +46,37 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: 'images.unsplash.com',
+        pathname: '/**',
       },
       {
         protocol: 'https',
         hostname: '**.amazonaws.com', // S3 buckets
+        pathname: '/**',
       },
       {
         protocol: 'https',
         hostname: '**.r2.cloudflarestorage.com', // Cloudflare R2
+        pathname: '/**',
       },
       {
         protocol: 'https',
         hostname: '**.cloudflare-ipfs.com',
+        pathname: '/**',
       },
       {
         protocol: 'https',
         hostname: '**.r2.dev', // Cloudflare R2 public buckets
+        pathname: '/**',
       },
       {
         protocol: 'https',
         hostname: 'images.luxorautosale.com', // Custom CDN/domain
+        pathname: '/**',
       },
       {
         protocol: 'https',
         hostname: 'lh3.googleusercontent.com', // Google profile images
+        pathname: '/**',
       },
     ],
     formats: ['image/avif', 'image/webp'],

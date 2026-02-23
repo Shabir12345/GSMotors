@@ -1,19 +1,26 @@
 'use client';
 
-// Public Inventory Page - Modern Revamp with Mobile Improvements
-
-// Force dynamic rendering to prevent build-time errors
+// Public Inventory Page - Elite Collection Experience
 export const dynamic = 'force-dynamic';
 
 import { useState, useEffect, useCallback, Suspense } from 'react';
-import Link from 'next/link';
-import Image from 'next/image';
-import { formatPrice, formatMileage, getStatusBadgeStyle } from '@/utils/formatters';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  Settings2,
+  Car,
+  Plus,
+  Search,
+  ArrowRight,
+  TrendingUp,
+  Filter,
+  LayoutGrid,
+  ChevronRight
+} from 'lucide-react';
+import VehicleGrid from '@/components/VehicleGrid';
 import { useVehicleFilters } from '@/hooks/useVehicleFilters';
 import FilterSidebar from '@/components/inventory/FilterSidebar';
 import Select from '@/components/Select';
-import { siteConfig } from '@/siteConfig';
-import { MOCK_VEHICLES } from '@/data/mockData';
+import { cn } from '@/lib/utils';
 
 function InventoryContent() {
   const { filters, setFilter, clearFilters, isInitialized, activeFilterCount } = useVehicleFilters();
@@ -47,22 +54,40 @@ function InventoryContent() {
     };
   }, [isMobileFiltersOpen]);
 
-  // Fetch unique makes from Mock Data on mount
+  // Fetch unique makes from API on mount
   useEffect(() => {
-    const uniqueMakes = Array.from(new Set(
-      MOCK_VEHICLES.map((v) => v.make.trim())
-    )).sort();
-    setAvailableMakes(uniqueMakes);
+    const fetchMakes = async () => {
+      try {
+        const response = await fetch('/api/vehicles/makes');
+        const result = await response.json();
+        if (result.success) {
+          setAvailableMakes(result.data);
+        }
+      } catch (error) {
+        console.error('Failed to fetch makes:', error);
+      }
+    };
+    fetchMakes();
   }, []);
 
   // Fetch models when make changes
   useEffect(() => {
-    const models = MOCK_VEHICLES
-      .filter((v) => !filters.make || v.make === filters.make)
-      .map((v) => v.model);
-
-    const uniqueModels = Array.from(new Set(models)).sort();
-    setAvailableModels(uniqueModels);
+    const fetchModels = async () => {
+      if (!filters.make) {
+        setAvailableModels([]);
+        return;
+      }
+      try {
+        const response = await fetch(`/api/vehicles/models?make=${filters.make}`);
+        const result = await response.json();
+        if (result.success) {
+          setAvailableModels(result.data);
+        }
+      } catch (error) {
+        console.error('Failed to fetch models:', error);
+      }
+    };
+    fetchModels();
   }, [filters.make]);
 
   // Fetch vehicles when filters change
@@ -71,49 +96,32 @@ function InventoryContent() {
 
     setLoading(true);
     try {
-      // Simulate network delay for realism
-      await new Promise(resolve => setTimeout(resolve, 600));
+      const queryParams = new URLSearchParams();
+      if (filters.search) queryParams.set('search', filters.search);
+      if (filters.make) queryParams.set('make', filters.make);
+      if (filters.model) queryParams.set('model', filters.model);
+      if (filters.minPrice) queryParams.set('minPrice', (parseInt(filters.minPrice) * 100).toString());
+      if (filters.maxPrice) queryParams.set('maxPrice', (parseInt(filters.maxPrice) * 100).toString());
+      if (filters.year) queryParams.set('year', filters.year);
+      if (filters.maxMileage) queryParams.set('maxMileage', filters.maxMileage);
+      if (filters.bodyType) queryParams.set('bodyType', filters.bodyType);
+      if (filters.transmission) queryParams.set('transmission', filters.transmission);
+      if (filters.fuelType) queryParams.set('fuelType', filters.fuelType);
+      if (filters.sortBy) queryParams.set('sortBy', filters.sortBy);
 
-      let filtered = [...MOCK_VEHICLES];
+      // Strict Retail Inventory: Hide wholesale, as-is, and export units
+      queryParams.set('isWholesale', 'false');
+      queryParams.set('isAsIs', 'false');
+      queryParams.set('isExport', 'false');
+      queryParams.set('status', 'AVAILABLE');
 
-      if (filters.make) {
-        filtered = filtered.filter(v => v.make === filters.make);
-      }
-      if (filters.model) {
-        filtered = filtered.filter(v => v.model === filters.model);
-      }
-      if (filters.minPrice) {
-        filtered = filtered.filter(v => v.priceCents >= parseInt(filters.minPrice!) * 100);
-      }
-      if (filters.maxPrice) {
-        filtered = filtered.filter(v => v.priceCents <= parseInt(filters.maxPrice!) * 100);
-      }
+      const response = await fetch(`/api/vehicles?${queryParams.toString()}`);
+      const result = await response.json();
 
-      // Sort
-      if (filters.sortBy) {
-        switch (filters.sortBy) {
-          case 'price-low':
-            filtered.sort((a, b) => a.priceCents - b.priceCents);
-            break;
-          case 'price-high':
-            filtered.sort((a, b) => b.priceCents - a.priceCents);
-            break;
-          case 'mileage-low':
-            filtered.sort((a, b) => a.odometerKm - b.odometerKm);
-            break;
-          case 'mileage-high':
-            filtered.sort((a, b) => b.odometerKm - a.odometerKm);
-            break;
-          case 'newest':
-          default:
-            filtered.sort((a, b) => b.year - a.year);
-            break;
-        }
+      if (result.success) {
+        setVehicles(result.data.data);
+        setTotalVehicles(result.data.pagination.total);
       }
-
-      setVehicles(filtered);
-      setTotalVehicles(filtered.length);
-
     } catch (error) {
       console.error('Failed to fetch vehicles:', error);
     } finally {
@@ -126,313 +134,204 @@ function InventoryContent() {
   }, [fetchVehicles]);
 
   return (
-    <>
-      <div className="min-h-screen bg-brand-darker pt-24">
-        {/* Header - Handled by Global Layout */}
-
-
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-12">
-          <div className="flex flex-col lg:flex-row gap-8">
-
-            {/* Mobile Filter & Sort Button */}
-            <div className="lg:hidden flex gap-3 mb-4">
-              <button
-                onClick={() => setIsMobileFiltersOpen(true)}
-                className="flex-1 flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white py-3.5 rounded-xl font-bold text-sm shadow-lg hover:shadow-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-300 active:scale-95"
-              >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
-                </svg>
-                Filters & Sort
-                {activeFilterCount > 0 && (
-                  <span className="bg-white/20 text-white text-xs font-bold px-2 py-0.5 rounded-full">
-                    {activeFilterCount}
-                  </span>
-                )}
-              </button>
-            </div>
-
-            {/* Mobile Filter Drawer Overlay */}
-            {isMobileFiltersOpen && (
-              <div
-                className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 lg:hidden animate-in fade-in duration-300"
-                onClick={() => setIsMobileFiltersOpen(false)}
-              />
-            )}
-
-            {/* Mobile Filter Drawer */}
-            <div className={`fixed inset-y-0 left-0 w-[90vw] max-w-md bg-gray-900 z-50 lg:hidden transform transition-transform duration-300 ease-out shadow-2xl ${isMobileFiltersOpen ? 'translate-x-0' : '-translate-x-full'
-              }`}>
-              <div className="h-full flex flex-col overflow-hidden">
-                {/* Mobile Drawer Header */}
-                <div className="flex items-center justify-between p-4 border-b border-gray-700 bg-gray-800">
-                  <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                    <svg className="w-6 h-6 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
-                    </svg>
-                    Filters & Sort
-                  </h2>
-                  <button
-                    onClick={() => setIsMobileFiltersOpen(false)}
-                    className="p-2 text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg transition-colors"
-                    aria-label="Close filters"
-                  >
-                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
-
-                {/* Mobile Drawer Content */}
-                <div className="flex-1 overflow-y-auto pb-24">
-                  <div className="p-4">
-                    {/* Sort First on Mobile */}
-                    <div className="mb-6 pb-6 border-b border-gray-700">
-                      <label className="block text-sm font-bold text-gray-300 mb-3 uppercase tracking-wider text-xs">
-                        Sort By
-                      </label>
-                      <Select
-                        value={filters.sortBy}
-                        onChange={(val) => setFilter('sortBy', val)}
-                        options={[
-                          { value: 'newest', label: 'Newest First' },
-                          { value: 'oldest', label: 'Oldest First' },
-                          { value: 'price-low', label: 'Price: Low to High' },
-                          { value: 'price-high', label: 'Price: High to Low' },
-                          { value: 'mileage-low', label: 'Mileage: Low to High' },
-                          { value: 'mileage-high', label: 'Mileage: High to Low' },
-                        ]}
-                        placeholder="Sort By"
-                      />
-                    </div>
-
-                    {/* Filters - Mobile Version */}
-                    <FilterSidebar
-                      filters={filters}
-                      setFilter={setFilter}
-                      clearFilters={clearFilters}
-                      availableMakes={availableMakes}
-                      availableModels={availableModels}
-                      hideHeader={true}
-                    />
-                  </div>
-                </div>
-
-                {/* Mobile Drawer Footer */}
-                <div className="absolute bottom-0 left-0 right-0 p-4 bg-gray-800 border-t border-gray-700 flex gap-3">
-                  {activeFilterCount > 0 && (
-                    <button
-                      onClick={clearFilters}
-                      className="flex-1 py-3 px-4 bg-gray-700 text-white rounded-xl font-semibold hover:bg-gray-600 transition-colors"
-                    >
-                      Clear All
-                    </button>
-                  )}
-                  <button
-                    onClick={() => setIsMobileFiltersOpen(false)}
-                    className="flex-1 py-3 px-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl font-bold hover:from-blue-700 hover:to-blue-800 transition-all shadow-lg"
-                  >
-                    Apply Filters
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Desktop Sidebar Filters */}
-            <aside className="hidden lg:block lg:w-1/4">
-              <div className="sticky top-28">
-                <FilterSidebar
-                  filters={filters}
-                  setFilter={setFilter}
-                  clearFilters={clearFilters}
-                  availableMakes={availableMakes}
-                  availableModels={availableModels}
-                />
-              </div>
-            </aside>
-
-            {/* Results Area */}
-            <div className="w-full lg:w-3/4">
-              {/* Results Header */}
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 lg:mb-8 gap-4 bg-gradient-to-br from-gray-800/60 to-gray-800/40 backdrop-blur-md p-4 lg:p-6 rounded-xl lg:rounded-2xl border border-gray-700/50 shadow-xl">
-                <div className="space-y-1">
-                  <h1 className="text-2xl lg:text-3xl font-bold bg-gradient-to-r from-blue-400 via-blue-500 to-green-400 bg-clip-text text-transparent">
-                    Our Inventory
-                  </h1>
-                  <p className="text-gray-400 text-sm lg:text-base font-medium">
-                    {loading ? (
-                      <span className="inline-flex items-center gap-2">
-                        <span className="animate-spin w-4 h-4 border-2 border-blue-400 border-t-transparent rounded-full"></span>
-                        Loading...
-                      </span>
-                    ) : (
-                      `Found ${totalVehicles} vehicle${totalVehicles !== 1 ? 's' : ''}`
-                    )}
-                  </p>
-                </div>
-
-                {/* Desktop Sort Only */}
-                <div className="hidden lg:block w-56">
-                  <Select
-                    value={filters.sortBy}
-                    onChange={(val) => setFilter('sortBy', val)}
-                    options={[
-                      { value: 'newest', label: 'Newest First' },
-                      { value: 'oldest', label: 'Oldest First' },
-                      { value: 'price-low', label: 'Price: Low to High' },
-                      { value: 'price-high', label: 'Price: High to Low' },
-                      { value: 'mileage-low', label: 'Mileage: Low to High' },
-                      { value: 'mileage-high', label: 'Mileage: High to Low' },
-                    ]}
-                    placeholder="Sort By"
-                  />
-                </div>
-              </div>
-
-              {/* Vehicle Grid */}
-              {loading ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8 animate-pulse">
-                  {[1, 2, 3, 4].map((i) => (
-                    <div key={i} className="bg-gray-800/50 rounded-xl lg:rounded-2xl h-[450px] lg:h-[500px] border border-gray-700/50"></div>
-                  ))}
-                </div>
-              ) : vehicles.length === 0 ? (
-                <div className="text-center py-16 lg:py-20 bg-gradient-to-br from-gray-800/50 to-gray-800/30 rounded-xl lg:rounded-2xl border border-gray-700/50 backdrop-blur-sm animate-in fade-in duration-500">
-                  <div className="text-6xl lg:text-7xl mb-6 animate-bounce">🔍</div>
-                  <h3 className="text-xl lg:text-2xl font-bold text-white mb-3">No vehicles found</h3>
-                  <p className="text-gray-400 mb-8 text-base lg:text-lg px-4">Try adjusting your filters to see more results.</p>
-                  <button
-                    onClick={() => {
-                      clearFilters();
-                      setIsMobileFiltersOpen(false);
-                    }}
-                    className="px-6 lg:px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl font-semibold hover:from-blue-700 hover:to-blue-800 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95"
-                  >
-                    Clear All Filters
-                  </button>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
-                  {vehicles.map((vehicle, index) => (
-                    <Link
-                      key={vehicle.id}
-                      href={`/vehicles/${vehicle.seoSlug}`}
-                      className="group bg-gradient-to-br from-gray-800/90 to-gray-800/70 rounded-xl lg:rounded-2xl overflow-hidden border border-gray-700/50 hover:border-blue-500/70 transition-all duration-500 hover:shadow-2xl hover:shadow-blue-500/20 flex flex-col transform hover:-translate-y-1 lg:hover:-translate-y-2"
-                    >
-                      {/* Image Container */}
-                      <div className="relative aspect-[4/3] bg-gradient-to-br from-gray-700 to-gray-800 overflow-hidden">
-                        {vehicle.photos && vehicle.photos.length > 0 ? (
-                          <Image
-                            src={vehicle.photos[0].url}
-                            alt={vehicle.photos[0].altText || vehicle.title}
-                            fill
-                            className="object-contain object-center transition-transform duration-700 ease-out"
-                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                          />
-                        ) : (
-                          <div className="flex items-center justify-center h-full text-gray-600">
-                            <span className="text-5xl lg:text-6xl opacity-50">🚗</span>
-                          </div>
-                        )}
-
-                        {/* Gradient Overlay */}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-
-                        {/* Badges */}
-                        <div className="absolute top-3 lg:top-4 left-3 lg:left-4 flex flex-col gap-2 z-10">
-                          {vehicle.status && (
-                            <span className={`${getStatusBadgeStyle(vehicle.status).bgColor} ${getStatusBadgeStyle(vehicle.status).textColor} text-xs font-bold px-3 lg:px-4 py-1 lg:py-1.5 rounded-full shadow-xl backdrop-blur-md bg-opacity-95 transform group-hover:scale-105 transition-transform duration-300`}>
-                              {getStatusBadgeStyle(vehicle.status).label}
-                            </span>
-                          )}
-                        </div>
-
-                        {/* Price Badge */}
-                        <div className="absolute bottom-3 lg:bottom-4 right-3 lg:right-4 bg-gradient-to-r from-blue-600/95 to-blue-700/95 backdrop-blur-md text-white px-4 lg:px-5 py-1.5 lg:py-2 rounded-lg lg:rounded-xl font-bold text-base lg:text-lg shadow-2xl border border-white/20 transform group-hover:scale-110 transition-all duration-300">
-                          {formatPrice(vehicle.priceCents)}
-                        </div>
-                      </div>
-
-                      {/* Content */}
-                      <div className="p-4 lg:p-6 flex flex-col flex-grow">
-                        <div className="mb-4 lg:mb-5">
-                          <h3 className="text-lg lg:text-xl font-bold text-white mb-2 group-hover:text-blue-400 transition-colors duration-300 line-clamp-2">
-                            {vehicle.title}
-                          </h3>
-                          <div className="flex items-center gap-2 text-xs lg:text-sm text-gray-400 font-medium">
-                            <span className="flex items-center gap-1">
-                              <svg className="w-3 h-3 lg:w-4 lg:h-4 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                              </svg>
-                              {vehicle.year}
-                            </span>
-                            <span className="text-gray-600">•</span>
-                            <span className="flex items-center gap-1">
-                              <svg className="w-3 h-3 lg:w-4 lg:h-4 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                              </svg>
-                              {formatMileage(vehicle.odometerKm)}
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* Features Grid - Simplified on Mobile */}
-                        <div className="grid grid-cols-2 gap-y-1.5 lg:gap-y-2 gap-x-3 lg:gap-x-4 text-xs lg:text-sm text-gray-400 mb-3 lg:mb-4">
-                          <div className="flex items-center gap-1.5 lg:gap-2">
-                            <svg className="w-3 h-3 lg:w-4 lg:h-4 opacity-70 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
-                            </svg>
-                            <span className="truncate">{vehicle.exteriorColor || 'N/A'}</span>
-                          </div>
-                          <div className="flex items-center gap-1.5 lg:gap-2">
-                            <svg className="w-3 h-3 lg:w-4 lg:h-4 opacity-70 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                            </svg>
-                            <span className="truncate">{vehicle.fuelType || 'Gasoline'}</span>
-                          </div>
-                          <div className="flex items-center gap-1.5 lg:gap-2">
-                            <svg className="w-3 h-3 lg:w-4 lg:h-4 opacity-70 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-                            </svg>
-                            <span className="truncate">{vehicle.transmission || 'Automatic'}</span>
-                          </div>
-                          <div className="flex items-center gap-1.5 lg:gap-2">
-                            <svg className="w-3 h-3 lg:w-4 lg:h-4 opacity-70 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                            </svg>
-                            <span className="truncate">{vehicle.bodyType || 'Sedan'}</span>
-                          </div>
-                        </div>
-
-                        <div className="mt-auto pt-3 lg:pt-5 border-t border-gray-700/50">
-                          <span className="text-blue-400 font-semibold text-sm lg:text-base group-hover:translate-x-2 transition-all duration-300 flex items-center gap-2">
-                            View Details
-                            <svg className="w-4 h-4 lg:w-5 lg:h-5 transform group-hover:translate-x-1 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
-                            </svg>
-                          </span>
-                        </div>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        </main>
+    <div className="min-h-screen bg-[#050505] text-white selection:bg-brand-accent/30 selection:text-white">
+      {/* Background Ambience */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+        <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-brand-accent/5 blur-[120px] rounded-full animate-pulse" />
+        <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-500/5 blur-[120px] rounded-full" />
       </div>
-    </>
+
+      <div className="relative z-10 max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-12 py-12 lg:py-24">
+
+        {/* Hero Section */}
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-12 mb-20 px-4">
+          <motion.div
+            initial={{ opacity: 0, x: -30 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8 }}
+            className="max-w-4xl space-y-6"
+          >
+            <div className="flex items-center gap-3 text-brand-accent font-black text-xs uppercase tracking-[0.4em]">
+              <div className="w-12 h-[2px] bg-brand-accent rounded-full" />
+              Elite Inventory
+              <span className="text-white/20 ml-2">GSM-001</span>
+            </div>
+            <h1 className="text-6xl sm:text-8xl font-black tracking-tighter leading-[0.85] uppercase">
+              Curated <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-white/80 to-white/20">Masterpieces</span>
+            </h1>
+            <p className="text-gray-500 text-lg max-w-xl font-medium leading-relaxed">
+              Explore our hand-picked selection of automotive excellence, where performance meets unparalleled luxury.
+            </p>
+          </motion.div>
+
+          {/* Sort Control */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="flex items-center gap-4 border-t border-white/5 pt-8 lg:border-t-0 lg:pt-0"
+          >
+            <div className="relative group">
+              <div className="absolute inset-0 bg-brand-accent/20 blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-full" />
+              <Select
+                value={filters.sortBy || 'newest'}
+                onChange={(val) => setFilter('sortBy', val)}
+                options={[
+                  { value: 'newest', label: 'Newest Arrivals' },
+                  { value: 'price_asc', label: 'Price: Low to High' },
+                  { value: 'price_desc', label: 'Price: High to Low' },
+                  { value: 'mileage_asc', label: 'Lowest Mileage' },
+                  { value: 'year_desc', label: 'Latest Year' }
+                ]}
+                className="w-[200px] sm:w-[260px]"
+              />
+            </div>
+            <button
+              onClick={() => setIsMobileFiltersOpen(true)}
+              className="lg:hidden flex items-center justify-center p-5 rounded-[2rem] bg-white/[0.03] border border-white/10 active:scale-95 transition-all hover:bg-white/[0.05]"
+            >
+              <Settings2 className="w-5 h-5 text-brand-accent" />
+            </button>
+          </motion.div>
+        </div>
+
+        <div className="flex flex-col lg:flex-row gap-16">
+          {/* Desktop Desktop Filters */}
+          <aside className="hidden lg:block w-[360px] flex-shrink-0 sticky top-32 h-fit">
+            <FilterSidebar
+              filters={filters}
+              setFilter={setFilter}
+              clearFilters={clearFilters}
+              availableMakes={availableMakes}
+              availableModels={availableModels}
+            />
+          </aside>
+
+          {/* Grid Area */}
+          <main className="flex-grow min-w-0">
+            {/* Meta Info */}
+            <div className="flex items-center justify-between mb-10 px-4">
+              <div className="flex items-center gap-4">
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40">Status Check</span>
+                <div className="flex items-center gap-2.5 px-4 py-1.5 bg-brand-accent/5 border border-brand-accent/20 rounded-full">
+                  <div className="w-2 h-2 bg-brand-accent rounded-full animate-pulse shadow-[0_0_10px_rgba(var(--brand-accent-rgb),0.5)]" />
+                  <span className="text-[10px] font-black text-white uppercase tracking-widest">{totalVehicles} Units Available</span>
+                </div>
+              </div>
+            </div>
+
+            <Suspense fallback={
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+                {[1, 2, 3, 4, 5, 6].map(i => (
+                  <div key={i} className="aspect-[16/18] bg-white/[0.02] border border-white/5 rounded-[2.5rem] animate-pulse" />
+                ))}
+              </div>
+            }>
+              <div className="px-2">
+                <VehicleGrid vehicles={vehicles} loading={loading} />
+              </div>
+
+              {/* No Results Illustration */}
+              {!loading && vehicles.length === 0 && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.98 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="flex flex-col items-center justify-center py-32 text-center space-y-10 bg-white/[0.01] border border-white/[0.03] rounded-[3.5rem] relative overflow-hidden"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-b from-brand-accent/[0.02] to-transparent pointer-events-none" />
+                  <div className="relative">
+                    <div className="p-10 bg-white/[0.03] rounded-full border border-white/5 mb-8">
+                      <Car className="w-20 h-20 text-gray-800" />
+                    </div>
+                    <div className="space-y-4">
+                      <h2 className="text-4xl font-black text-white uppercase tracking-tighter">Zero Matches</h2>
+                      <p className="text-gray-500 max-w-sm mx-auto text-lg">Our scouts are always searching. Try clearing your refinements or consult an advisor.</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={clearFilters}
+                    className="group flex items-center gap-3 px-10 py-5 bg-white text-black rounded-full font-black text-xs uppercase tracking-widest hover:bg-brand-accent hover:text-white transition-all shadow-2xl active:scale-95"
+                  >
+                    Reset Grid
+                    <RotateCcw className="w-4 h-4 group-hover:rotate-[-180deg] transition-transform duration-700" />
+                  </button>
+                </motion.div>
+              )}
+            </Suspense>
+          </main>
+        </div>
+      </div>
+
+      {/* Mobile Drawer */}
+      <AnimatePresence>
+        {isMobileFiltersOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsMobileFiltersOpen(false)}
+              className="fixed inset-0 bg-black/90 backdrop-blur-md z-[100]"
+            />
+            <motion.div
+              initial={{ x: '100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '100%' }}
+              transition={{ type: 'spring', damping: 35, stiffness: 350 }}
+              className="fixed right-0 top-0 h-full w-full max-w-[360px] bg-[#0A0A0B] z-[101] shadow-2xl overflow-y-auto px-8 pt-8 pb-32"
+            >
+              <div className="flex items-center justify-between mb-12 pb-6 border-b border-white/5">
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-black text-brand-accent uppercase tracking-[0.3em]">Refinement Hub</span>
+                  <h2 className="text-xl font-black uppercase tracking-tight">Active Filters</h2>
+                </div>
+                <button
+                  onClick={() => setIsMobileFiltersOpen(false)}
+                  className="p-3 hover:bg-white/10 rounded-full transition-colors border border-white/5"
+                >
+                  <Plus className="w-6 h-6 rotate-45" />
+                </button>
+              </div>
+              <FilterSidebar
+                filters={filters}
+                setFilter={setFilter}
+                clearFilters={clearFilters}
+                availableMakes={availableMakes}
+                availableModels={availableModels}
+                hideHeader
+              />
+              <div className="fixed bottom-0 right-0 w-full max-w-[360px] p-6 bg-[#0A0A0B]/80 backdrop-blur-2xl border-t border-white/5">
+                <button
+                  onClick={() => setIsMobileFiltersOpen(false)}
+                  className="w-full py-5 bg-brand-accent text-white rounded-[1.5rem] font-black text-xs uppercase tracking-widest shadow-xl shadow-brand-accent/20 active:scale-95 transition-all"
+                >
+                  Update Results ({totalVehicles})
+                </button>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+    </div>
   );
 }
+
+const RotateCcw = ({ className }: { className?: string }) => (
+  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+  </svg>
+);
 
 export default function InventoryPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin w-12 h-12 border-4 border-blue-400 border-t-transparent rounded-full mx-auto mb-4"></div>
-          <p className="text-gray-400 text-lg">Loading inventory...</p>
+      <div className="min-h-screen bg-[#050505] flex flex-col items-center justify-center space-y-6">
+        <div className="relative">
+          <div className="w-16 h-16 border-[3px] border-brand-accent/10 border-t-brand-accent rounded-full animate-spin" />
+          <div className="absolute inset-0 bg-brand-accent/20 blur-2xl animate-pulse" />
         </div>
+        <div className="text-[10px] font-black text-white uppercase tracking-[0.4em] animate-pulse">Initializing Collection...</div>
       </div>
     }>
       <InventoryContent />

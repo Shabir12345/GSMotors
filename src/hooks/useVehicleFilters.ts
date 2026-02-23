@@ -13,6 +13,9 @@ export interface FilterState {
   fuelType: string;
   bodyType: string;
   sortBy: string;
+  isAsIs: string;
+  isExport: string;
+  isWholesale: string;
 }
 
 const initialState: FilterState = {
@@ -27,6 +30,9 @@ const initialState: FilterState = {
   fuelType: '',
   bodyType: '',
   sortBy: 'newest',
+  isAsIs: '',
+  isExport: '',
+  isWholesale: '',
 };
 
 export function useVehicleFilters() {

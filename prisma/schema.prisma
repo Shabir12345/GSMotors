@@ -59,6 +59,9 @@ model Vehicle {
   priceCents      Int             // Store in cents to avoid float issues
   status          VehicleStatus   @default(AVAILABLE)
   isFeatured      Boolean         @default(false)
+  isAsIs          Boolean         @default(false)
+  isExport        Boolean         @default(false)
+  isWholesale     Boolean         @default(false)
   
   // Appearance
   exteriorColor   String?

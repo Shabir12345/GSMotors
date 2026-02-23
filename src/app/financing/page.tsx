@@ -1,7 +1,7 @@
 import FinancingForm from '@/components/FinancingForm';
 
 export const metadata = {
-    title: 'Financing - GS Motors Luxury',
+    title: 'Financing - GSMotorsinc',
     description: 'Flexible financing options for your dream car. Apply online securely.',
 };
 

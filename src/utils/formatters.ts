@@ -80,26 +80,26 @@ export function formatTransmission(transmission: string): string {
 export function getStatusBadgeStyle(status: string): { bgColor: string; textColor: string; label: string } {
   const styles: Record<string, { bgColor: string; textColor: string; label: string }> = {
     AVAILABLE: {
-      bgColor: 'bg-green-600',
-      textColor: 'text-white',
-      label: 'Available',
+      bgColor: 'bg-emerald-500/10',
+      textColor: 'text-emerald-400',
+      label: 'Inventory Active',
     },
     PENDING: {
-      bgColor: 'bg-yellow-500',
-      textColor: 'text-white',
-      label: 'Pending',
+      bgColor: 'bg-amber-500/10',
+      textColor: 'text-amber-400',
+      label: 'Reserved Deal',
     },
     SOLD: {
-      bgColor: 'bg-gray-600',
-      textColor: 'text-white',
-      label: 'Sold',
+      bgColor: 'bg-rose-500/10',
+      textColor: 'text-rose-400',
+      label: 'Portfolio / Sold',
     },
     DRAFT: {
-      bgColor: 'bg-gray-500',
-      textColor: 'text-white',
-      label: 'Draft',
+      bgColor: 'bg-slate-500/10',
+      textColor: 'text-slate-400',
+      label: 'Draft Status',
     },
   };
-  return styles[status] || { bgColor: 'bg-gray-500', textColor: 'text-white', label: status };
+  return styles[status] || { bgColor: 'bg-slate-500/10', textColor: 'text-slate-400', label: status };
 }
 

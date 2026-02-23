@@ -216,7 +216,7 @@ export const MOCK_REVIEWS: Review[] = [
         id: 'r1',
         author: 'James Patterson',
         rating: 5,
-        text: 'Absolutely streamlined experience. The team at GS Motors Luxury understood exactly what I was looking for. My new GT3 RS is flawless. Highly recommend for anyone looking for serious machinery.',
+        text: 'Absolutely streamlined experience. The team at GSMotorsinc understood exactly what I was looking for. My new GT3 RS is flawless. Highly recommend for anyone looking for serious machinery.',
         time: '2 days ago',
         source: 'GOOGLE'
     },

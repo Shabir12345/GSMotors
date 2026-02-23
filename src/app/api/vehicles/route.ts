@@ -28,11 +28,11 @@ export async function GET(request: NextRequest) {
 
     // Parse query parameters
     const sortByParam = searchParams.get('sortBy') || 'newest';
-    
+
     // Convert new sort values to validation schema values
     let sortBy: 'price' | 'year' | 'odometer' | 'createdAt' = 'createdAt';
     let sortOrder: 'asc' | 'desc' = 'desc';
-    
+
     switch (sortByParam) {
       case 'newest':
         sortBy = 'createdAt';
@@ -62,7 +62,9 @@ export async function GET(request: NextRequest) {
         sortBy = 'createdAt';
         sortOrder = 'desc';
     }
-    
+
+    const hasAnySpecialTag = searchParams.has('isAsIs') || searchParams.has('isExport') || searchParams.has('isWholesale');
+
     const params = {
       make: searchParams.get('make') || undefined,
       model: searchParams.get('model') || undefined,
@@ -84,6 +86,9 @@ export async function GET(request: NextRequest) {
       transmission: searchParams.get('transmission') || undefined,
       status: searchParams.get('status') || undefined,
       search: searchParams.get('search') || undefined,
+      isAsIs: searchParams.get('isAsIs') === 'true' ? true : searchParams.get('isAsIs') === 'false' ? false : (!hasAnySpecialTag ? false : undefined),
+      isExport: searchParams.get('isExport') === 'true' ? true : searchParams.get('isExport') === 'false' ? false : (!hasAnySpecialTag ? false : undefined),
+      isWholesale: searchParams.get('isWholesale') === 'true' ? true : searchParams.get('isWholesale') === 'false' ? false : (!hasAnySpecialTag ? false : undefined),
       page: searchParams.get('page') ? parseInt(searchParams.get('page')!) : 1,
       perPage: searchParams.get('perPage') ? parseInt(searchParams.get('perPage')!) : 12,
       sortBy,
@@ -106,8 +111,8 @@ export async function GET(request: NextRequest) {
 
     // Build where clause
     const where: Prisma.VehicleWhereInput = {
-      // Only filter by status if explicitly requested, otherwise show all
-      ...(filters.status && filters.status !== 'ALL' && { status: filters.status as any }),
+      // Only filter by status if explicitly requested, otherwise show all AVAILABLE
+      status: (filters.status && filters.status !== 'ALL') ? (filters.status as any) : 'AVAILABLE',
       ...(filters.make && { make: { contains: filters.make, mode: 'insensitive' } }),
       ...(filters.model && { model: { contains: filters.model, mode: 'insensitive' } }),
       // Note: year filtering is handled by minYear/maxYear
@@ -120,6 +125,9 @@ export async function GET(request: NextRequest) {
       ...(filters.drivetrain && { drivetrain: filters.drivetrain as any }),
       ...(filters.fuelType && { fuelType: filters.fuelType as any }),
       ...(filters.transmission && { transmission: filters.transmission as any }),
+      ...(filters.isAsIs !== undefined && { isAsIs: filters.isAsIs }),
+      ...(filters.isExport !== undefined && { isExport: filters.isExport }),
+      ...(filters.isWholesale !== undefined && { isWholesale: filters.isWholesale }),
       ...(filters.search && {
         OR: [
           { make: { contains: filters.search, mode: 'insensitive' } },
@@ -217,12 +225,12 @@ export async function GET(request: NextRequest) {
       name: (error as any)?.name,
       code: (error as any)?.code,
     });
-    
+
     // Check if it's a Prisma error
     if ((error as any)?.code === 'P2002' || (error as any)?.code?.startsWith('P')) {
       console.error('Prisma error detected:', (error as any)?.code);
     }
-    
+
     return NextResponse.json<ApiResponse>(
       {
         success: false,

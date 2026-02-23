@@ -1,7 +1,7 @@
 import TradeInForm from '@/components/TradeInForm';
 
 export const metadata = {
-    title: 'Sell or Trade Your Vehicle - GS Motors Luxury',
+    title: 'Sell or Trade Your Vehicle - GSMotorsinc',
     description: 'Get top dollar for your luxury vehicle. Instant trade-in valuations.',
 };
 

@@ -1,6 +1,9 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ChevronDown, Check } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface Option {
   value: string;
@@ -26,7 +29,6 @@ export default function Select({
 }: SelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-  const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -37,13 +39,10 @@ export default function Select({
 
     if (isOpen) {
       document.addEventListener('mousedown', handleClickOutside);
-      // Prevent body scroll when dropdown is open on mobile
-      document.body.style.overflow = 'hidden';
     }
 
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
-      document.body.style.overflow = '';
     };
   }, [isOpen]);
 
@@ -61,9 +60,9 @@ export default function Select({
   const selectedOption = options.find((opt) => opt.value === value);
 
   return (
-    <div className={`relative ${className}`} ref={containerRef}>
+    <div className={cn("relative z-[60]", className)} ref={containerRef}>
       {label && (
-        <label className="block text-sm font-medium text-gray-300 mb-1">
+        <label className="block text-[10px] font-black text-gray-500 mb-2 uppercase tracking-[0.2em] px-1">
           {label}
         </label>
       )}
@@ -74,79 +73,106 @@ export default function Select({
           e.stopPropagation();
           setIsOpen(!isOpen);
         }}
-        className="w-full flex items-center justify-between px-4 py-2.5 bg-gray-700/50 border border-blue-500/30 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-400 transition-all duration-200 hover:bg-gray-700/70 hover:border-blue-500/50 text-left"
+        className={cn(
+          "group w-full flex items-center justify-between px-5 py-3.5 bg-white/[0.03] border rounded-[1.25rem] transition-all duration-300 text-left relative overflow-hidden",
+          isOpen
+            ? "border-brand-accent/50 bg-white/[0.06] shadow-[0_0_30px_-10px_rgba(var(--brand-accent-rgb),0.2)]"
+            : "border-white/5 hover:border-white/10 hover:bg-white/[0.05]"
+        )}
         aria-expanded={isOpen}
         aria-haspopup="listbox"
       >
-        <span className={`block truncate flex-1 ${!selectedOption ? 'text-gray-400' : 'text-white'}`}>
+        <span className={cn(
+          "block truncate flex-1 text-sm font-bold uppercase tracking-widest",
+          !selectedOption ? 'text-gray-600' : 'text-white'
+        )}>
           {selectedOption ? selectedOption.label : placeholder}
         </span>
-        <svg
-          className={`w-5 h-5 text-gray-400 transition-transform duration-200 flex-shrink-0 ml-2 ${
-            isOpen ? 'transform rotate-180' : ''
-          }`}
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-        </svg>
+        <ChevronDown className={cn(
+          "w-4 h-4 text-gray-500 transition-transform duration-500 ml-2 group-hover:text-brand-accent",
+          isOpen && "rotate-180"
+        )} />
+
+        {/* Subtle Gradient Hover */}
+        <div className="absolute inset-0 bg-gradient-to-r from-brand-accent/0 to-brand-accent/0 group-hover:from-white/0 group-hover:to-white/[0.02] pointer-events-none transition-colors" />
       </button>
 
-      {isOpen && (
-        <>
-          {/* Backdrop for mobile */}
-          <div 
-            className="fixed inset-0 bg-black/20 z-40 md:hidden"
-            onClick={() => setIsOpen(false)}
-          />
-          {/* Dropdown */}
-          <div
-            ref={dropdownRef}
-            className="absolute z-50 w-full mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-2xl max-h-60 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200"
-            role="listbox"
-          >
-            <div className="max-h-60 overflow-y-auto custom-scrollbar">
-              <ul className="py-1">
-                {placeholder && (
-                  <li
-                    className="px-4 py-2.5 text-gray-400 hover:bg-gray-700 cursor-pointer transition-colors duration-150"
-                    onClick={() => {
-                      onChange('');
-                      setIsOpen(false);
-                    }}
-                    role="option"
-                  >
-                    {placeholder}
-                  </li>
-                )}
-                {options.length === 0 ? (
-                  <li className="px-4 py-2.5 text-gray-400 text-center">No options available</li>
-                ) : (
-                  options.map((option) => (
+      <AnimatePresence>
+        {isOpen && (
+          <>
+            {/* Backdrop for mobile */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/40 z-40 md:hidden"
+              onClick={() => setIsOpen(false)}
+            />
+            {/* Dropdown */}
+            <motion.div
+              initial={{ opacity: 0, y: 10, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 10, scale: 0.98 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+              className="absolute z-50 w-full mt-2 bg-[#0A0A0B] border border-white/10 rounded-[1.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden backdrop-blur-3xl"
+              role="listbox"
+            >
+              <div className="max-h-64 overflow-y-auto py-2 custom-scrollbar">
+                <ul className="space-y-0.5 px-2">
+                  {placeholder && (
                     <li
-                      key={option.value}
-                      className={`px-4 py-2.5 cursor-pointer transition-colors duration-150 ${
-                        option.value === value
-                          ? 'bg-blue-600 text-white font-medium'
-                          : 'text-gray-300 hover:bg-gray-700'
-                      }`}
+                      className="px-4 py-3 text-[10px] font-black uppercase tracking-widest text-gray-600 hover:text-white hover:bg-white/5 rounded-xl cursor-pointer transition-all duration-200"
                       onClick={() => {
-                        onChange(option.value);
+                        onChange('');
                         setIsOpen(false);
                       }}
                       role="option"
-                      aria-selected={option.value === value}
                     >
-                      {option.label}
+                      Clear Selection
                     </li>
-                  ))
-                )}
-              </ul>
-            </div>
-          </div>
-        </>
-      )}
+                  )}
+                  {options.length === 0 ? (
+                    <li className="px-4 py-6 text-gray-600 text-xs text-center font-bold italic uppercase tracking-widest">No options available</li>
+                  ) : (
+                    options.map((option) => (
+                      <li
+                        key={option.value}
+                        className={cn(
+                          "flex items-center justify-between px-4 py-3.5 cursor-pointer rounded-xl transition-all duration-300 relative group/item",
+                          option.value === value
+                            ? 'bg-brand-accent/10 border border-brand-accent/20'
+                            : 'hover:bg-white/[0.03] border border-transparent'
+                        )}
+                        onClick={() => {
+                          onChange(option.value);
+                          setIsOpen(false);
+                        }}
+                        role="option"
+                        aria-selected={option.value === value}
+                      >
+                        <span className={cn(
+                          "text-xs font-black uppercase tracking-[0.15em] transition-colors",
+                          option.value === value ? 'text-brand-accent' : 'text-gray-400 group-hover/item:text-white'
+                        )}>
+                          {option.label}
+                        </span>
+                        {option.value === value && (
+                          <Check className="w-3 h-3 text-brand-accent" />
+                        )}
+
+                        {/* Glow indicator on active item */}
+                        {option.value === value && (
+                          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[2px] h-4 bg-brand-accent rounded-full shadow-[0_0_10px_rgba(var(--brand-accent-rgb),0.8)]" />
+                        )}
+                      </li>
+                    ))
+                  )}
+                </ul>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

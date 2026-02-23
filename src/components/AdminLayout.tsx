@@ -6,6 +6,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { siteConfig } from '@/siteConfig';
+import Logo from './Logo';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -51,70 +52,112 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   ];
 
   return (
-    <div className="min-h-screen bg-gray-900">
+    <div className="min-h-screen bg-[#050505] text-white">
       {/* Header */}
-      <header className="bg-gray-800/90 backdrop-blur-sm border-b border-blue-500/20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => setSidebarOpen(!sidebarOpen)}
-                className="lg:hidden text-gray-300 hover:text-white transition-colors"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
-              </button>
-              <Link href="/admin/dashboard" className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-blue-400 to-green-400 bg-clip-text text-transparent">
-                {siteConfig.name} Admin
-              </Link>
-            </div>
-            <div className="flex items-center gap-2 sm:gap-4">
-              <span className="text-gray-300 text-sm sm:text-base hidden sm:inline">
-                {user.name} ({user.role})
+      <header className="fixed top-0 left-0 right-0 z-50 bg-brand-darker/60 backdrop-blur-xl border-b border-white/5 h-20 flex items-center">
+        <div className="w-full max-w-[1600px] mx-auto px-4 md:px-8 flex justify-between items-center">
+          <div className="flex items-center gap-6">
+            <button
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              className="lg:hidden p-2 text-gray-400 hover:text-white transition-colors bg-white/5 rounded-lg border border-white/10"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+
+            <Link href="/admin/dashboard" className="transition-transform hover:scale-105 -translate-y-[4mm]">
+              <Logo className="text-xl sm:text-2xl" />
+              <span className="hidden sm:inline-block ml-2 px-2 py-0.5 rounded text-[10px] uppercase tracking-widest bg-brand-accent/20 text-brand-accent font-bold border border-brand-accent/20">
+                Admin
               </span>
-              <button
-                onClick={handleLogout}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-3 sm:px-4 py-2 rounded-lg transition-colors text-sm sm:text-base"
-              >
-                Logout
-              </button>
+            </Link>
+          </div>
+
+          <div className="flex items-center gap-4">
+            <div className="flex flex-col items-end mr-2 hidden sm:flex">
+              <span className="text-sm font-semibold text-white">{user.name}</span>
+              <span className="text-[10px] uppercase tracking-wider text-gray-500 font-bold">{user.role}</span>
             </div>
+
+            <div className="h-8 w-px bg-white/10 hidden sm:block"></div>
+
+            <button
+              onClick={handleLogout}
+              className="group flex items-center gap-2 px-4 py-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/20 transition-all duration-300 text-sm font-bold"
+            >
+              <span>Logout</span>
+              <svg className="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7" />
+              </svg>
+            </button>
           </div>
         </div>
       </header>
 
-      <div className="flex">
+      <div className="flex pt-20">
         {/* Sidebar */}
-        <aside className={`${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 fixed lg:static inset-y-0 left-0 top-16 z-50 w-64 bg-gray-800/95 backdrop-blur-sm min-h-[calc(100vh-4rem)] border-r border-blue-500/20 transition-transform duration-300 ease-in-out`}>
-          <nav className="p-4 space-y-2">
-            {navItems.map((item) => (
+        <aside className={`
+          fixed lg:sticky top-20 left-0 z-40
+          w-72 h-[calc(100vh-5rem)] 
+          bg-brand-darker/40 backdrop-blur-md 
+          border-r border-white/5
+          transition-transform duration-500 ease-in-out
+          ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+        `}>
+          <div className="p-6 h-full flex flex-col justify-between">
+            <nav className="space-y-1.5">
+              <div className="px-4 mb-4">
+                <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-gray-500">Inventory Management</p>
+                <p className="text-[10px] text-brand-accent font-black animate-pulse">SYSTEM UPDATED v2.0</p>
+              </div>
+              {navItems.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setSidebarOpen(false)}
+                  className={`
+                    flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 group
+                    ${pathname === item.href
+                      ? 'bg-brand-accent/10 text-brand-accent border border-brand-accent/20 shadow-[0_0_20px_rgba(255,59,48,0.05)]'
+                      : 'text-gray-400 hover:bg-white/5 hover:text-white border border-transparent'
+                    }
+                  `}
+                >
+                  <span className={`text-xl transition-transform group-hover:scale-110 ${pathname === item.href ? 'scale-110' : ''}`}>
+                    {item.icon}
+                  </span>
+                  <span className="font-medium">{item.label}</span>
+                </Link>
+              ))}
+            </nav>
+
+            <div className="mt-auto pt-6 border-t border-white/10">
               <Link
-                key={item.href}
-                href={item.href}
-                onClick={() => setSidebarOpen(false)}
-                className={`flex items-center gap-3 px-4 py-2 sm:py-3 rounded-lg transition-colors text-sm sm:text-base ${pathname === item.href
-                  ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30'
-                  : 'text-gray-300 hover:bg-blue-600/10 hover:text-blue-400'
-                  }`}
+                href="/"
+                className="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-400 hover:bg-white/5 hover:text-white transition-all duration-300 border border-transparent group"
               >
-                <span className="text-lg sm:text-xl">{item.icon}</span>
-                <span>{item.label}</span>
+                <span className="text-xl transition-transform group-hover:-translate-x-1">🏠</span>
+                <span className="font-medium">Back to Website</span>
               </Link>
-            ))}
-          </nav>
+            </div>
+          </div>
         </aside>
 
         {/* Mobile Overlay */}
         {sidebarOpen && (
           <div
-            className="lg:hidden fixed inset-0 bg-black/50 z-40 top-16"
+            className="lg:hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-30"
             onClick={() => setSidebarOpen(false)}
           />
         )}
 
         {/* Main Content */}
-        <main className="flex-1 p-4 sm:p-6 lg:p-8">{children}</main>
+        <main className="flex-1 p-4 md:p-8 lg:p-12 min-h-[calc(100vh-5rem)]">
+          <div className="max-w-[1400px] mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700">
+            {children}
+          </div>
+        </main>
       </div>
     </div>
   );
