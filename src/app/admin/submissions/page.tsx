@@ -22,7 +22,8 @@ import {
   Search,
   Filter,
   ArrowUpRight,
-  Inbox
+  Inbox,
+  Star
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
