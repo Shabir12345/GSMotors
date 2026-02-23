@@ -146,12 +146,7 @@
     will-change: transform, opacity;
   }
 
-  /* Content visibility for off-screen sections */
-  section {
-    content-visibility: auto;
-    contain-intrinsic-size: auto 500px;
-    contain: layout paint;
-  }
+  /* Content visibility removed - was causing sections to not render in production */
 
   /* GPU Layer Promotion */
   .gpu-layer {
