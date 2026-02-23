@@ -17,6 +17,7 @@ export default function TradeInForm() {
     });
     const [loading, setLoading] = useState(false);
     const [submitted, setSubmitted] = useState(false);
+    const [error, setError] = useState('');
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
@@ -29,12 +30,36 @@ export default function TradeInForm() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
+        setError('');
 
-        // Simulate API call
-        await new Promise((resolve) => setTimeout(resolve, 1500));
+        try {
+            const response = await fetch('/api/trade-in', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    vehicle: `${formData.year} ${formData.make} ${formData.model}`,
+                    vin: formData.vin,
+                    mileage: formData.mileage,
+                    condition: formData.condition,
+                    firstName: formData.firstName,
+                    lastName: formData.lastName,
+                    email: formData.email,
+                    phone: formData.phone,
+                }),
+            });
 
-        setLoading(false);
-        setSubmitted(true);
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+                setSubmitted(true);
+            } else {
+                setError(data.error || 'Something went wrong. Please try again.');
+            }
+        } catch (err) {
+            setError('Network error. Please check your connection and try again.');
+        } finally {
+            setLoading(false);
+        }
     };
 
     if (submitted) {
@@ -69,6 +94,11 @@ export default function TradeInForm() {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
+                {error && (
+                    <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm">
+                        {error}
+                    </div>
+                )}
                 <div>
                     <h4 className="text-sm font-bold text-brand-accent uppercase tracking-wider mb-4 border-b border-white/10 pb-2">Vehicle Information</h4>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

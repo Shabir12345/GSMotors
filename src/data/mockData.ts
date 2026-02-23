@@ -142,7 +142,7 @@ export const MOCK_VEHICLES: Vehicle[] = [
         wholesalePrice: 39500000,
         conditionGrade: 4.9,
         vin: 'ZFF88JMA0M0234567',
-        location: 'Beverly Hills Showroom',
+        location: 'Newcastle Showroom',
         photos: [
             { url: 'https://images.unsplash.com/photo-1592198084033-aade902d1aae?q=80&w=2070&auto=format&fit=crop', altText: 'Ferrari F8 Tributo', sortOrder: 0 }
         ],
@@ -172,7 +172,7 @@ export const MOCK_VEHICLES: Vehicle[] = [
         wholesalePrice: 42000000,
         conditionGrade: 5.0,
         vin: 'SCA664S50MU123456',
-        location: 'Beverly Hills Private Lounge',
+        location: 'Newcastle Private Lounge',
         photos: [
             { url: 'https://images.unsplash.com/photo-1631295868223-63260951cb28?q=80&w=2070&auto=format&fit=crop', altText: 'Rolls Royce Cullinan', sortOrder: 0 }
         ],

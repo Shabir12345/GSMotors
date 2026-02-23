@@ -1,4 +1,5 @@
 import FinancingForm from '@/components/FinancingForm';
+import { siteConfig } from '@/siteConfig';
 
 export const metadata = {
     title: 'Financing - GSMotorsinc',
@@ -40,8 +41,8 @@ export default function FinancingPage() {
                         <div className="p-8 rounded-3xl bg-gradient-to-br from-brand-accent/10 to-transparent border border-brand-accent/20">
                             <h3 className="text-xl font-bold text-white mb-2">Have Questions?</h3>
                             <p className="text-gray-400 mb-4">Our finance managers are available to discuss your options.</p>
-                            <a href="tel:5559876543" className="text-brand-accent font-bold hover:text-white transition-colors">
-                                Call (555) 987-6543
+                            <a href={`tel:${siteConfig.contact.phone}`} className="text-brand-accent font-bold hover:text-white transition-colors">
+                                Call {siteConfig.contact.phone}
                             </a>
                         </div>
                     </div>

@@ -11,6 +11,7 @@ export default function ContactForm() {
     });
     const [loading, setLoading] = useState(false);
     const [submitted, setSubmitted] = useState(false);
+    const [error, setError] = useState('');
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
@@ -23,12 +24,27 @@ export default function ContactForm() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
+        setError('');
 
-        // Simulate API call
-        await new Promise((resolve) => setTimeout(resolve, 1500));
+        try {
+            const response = await fetch('/api/contact', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData),
+            });
 
-        setLoading(false);
-        setSubmitted(true);
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+                setSubmitted(true);
+            } else {
+                setError(data.error || 'Something went wrong. Please try again.');
+            }
+        } catch (err) {
+            setError('Network error. Please check your connection and try again.');
+        } finally {
+            setLoading(false);
+        }
     };
 
     if (submitted) {
@@ -44,7 +60,7 @@ export default function ContactForm() {
                     Thank you for reaching out, {formData.name}. Our concierge team will get back to you shortly.
                 </p>
                 <button
-                    onClick={() => setSubmitted(false)}
+                    onClick={() => { setSubmitted(false); setFormData({ name: '', email: '', phone: '', message: '' }); }}
                     className="text-brand-accent hover:text-brand-accent-glow font-medium transition-colors"
                 >
                     Send another message
@@ -56,6 +72,12 @@ export default function ContactForm() {
     return (
         <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-3xl p-8 shadow-2xl">
             <h3 className="text-2xl font-bold text-white mb-6">Send Us a Message</h3>
+
+            {error && (
+                <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm">
+                    {error}
+                </div>
+            )}
 
             <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
@@ -92,7 +114,7 @@ export default function ContactForm() {
                             value={formData.phone}
                             onChange={handleChange}
                             className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent transition-colors"
-                            placeholder="(555) 123-4567"
+                            placeholder="(647) 123-4567"
                         />
                     </div>
                 </div>

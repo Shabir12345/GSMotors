@@ -6,26 +6,58 @@ import { MetadataRoute } from 'next';
 export const dynamic = 'force-static';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.luxorautosale.com';
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://gs-motors.vercel.app';
 
-  // Base URLs - no database access needed
-  const baseUrls = [
+  const now = new Date();
+
+  return [
     {
       url: baseUrl,
-      lastModified: new Date(),
-      changeFrequency: 'daily' as const,
+      lastModified: now,
+      changeFrequency: 'daily',
       priority: 1,
     },
     {
       url: `${baseUrl}/inventory`,
-      lastModified: new Date(),
-      changeFrequency: 'daily' as const,
+      lastModified: now,
+      changeFrequency: 'daily',
       priority: 0.9,
     },
+    {
+      url: `${baseUrl}/as-is`,
+      lastModified: now,
+      changeFrequency: 'weekly',
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/export`,
+      lastModified: now,
+      changeFrequency: 'weekly',
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/wholesale`,
+      lastModified: now,
+      changeFrequency: 'weekly',
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/financing`,
+      lastModified: now,
+      changeFrequency: 'monthly',
+      priority: 0.6,
+    },
+    {
+      url: `${baseUrl}/sell-trade`,
+      lastModified: now,
+      changeFrequency: 'monthly',
+      priority: 0.6,
+    },
+    {
+      url: `${baseUrl}/contact`,
+      lastModified: now,
+      changeFrequency: 'monthly',
+      priority: 0.8,
+    },
   ];
-
-  // Return only base URLs to avoid database access during build
-  // Vehicle URLs will be added dynamically at runtime if needed
-  return baseUrls;
 }
-

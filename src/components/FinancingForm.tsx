@@ -15,6 +15,7 @@ export default function FinancingForm() {
     });
     const [loading, setLoading] = useState(false);
     const [submitted, setSubmitted] = useState(false);
+    const [error, setError] = useState('');
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
@@ -27,15 +28,27 @@ export default function FinancingForm() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
+        setError('');
 
-        // Simulate API call
-        await new Promise((resolve) => setTimeout(resolve, 1500));
+        try {
+            const response = await fetch('/api/financing', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData),
+            });
 
-        // In a real implementation:
-        // await fetch('/api/financing', { method: 'POST', body: JSON.stringify(formData) });
+            const data = await response.json();
 
-        setLoading(false);
-        setSubmitted(true);
+            if (response.ok && data.success) {
+                setSubmitted(true);
+            } else {
+                setError(data.error || 'Something went wrong. Please try again.');
+            }
+        } catch (err) {
+            setError('Network error. Please check your connection and try again.');
+        } finally {
+            setLoading(false);
+        }
     };
 
     if (submitted) {
@@ -70,6 +83,11 @@ export default function FinancingForm() {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
+                {error && (
+                    <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm">
+                        {error}
+                    </div>
+                )}
                 <div className="grid grid-cols-2 gap-4">
                     <div>
                         <label className="block text-xs font-medium text-gray-400 mb-1">First Name</label>
@@ -119,7 +137,7 @@ export default function FinancingForm() {
                             onChange={handleChange}
                             required
                             className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent transition-colors"
-                            placeholder="(555) 123-4567"
+                            placeholder="(647) 123-4567"
                         />
                     </div>
                 </div>

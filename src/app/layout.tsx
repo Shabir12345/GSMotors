@@ -17,6 +17,7 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://gs-motors.vercel.app'),
   title: siteConfig.metadata.title,
   description: siteConfig.metadata.description,
   keywords: siteConfig.metadata.keywords,
@@ -27,6 +28,11 @@ export const metadata: Metadata = {
     locale: 'en_US',
     url: siteConfig.url,
     siteName: siteConfig.name,
+    title: siteConfig.metadata.title,
+    description: siteConfig.metadata.description,
+  },
+  twitter: {
+    card: 'summary_large_image',
     title: siteConfig.metadata.title,
     description: siteConfig.metadata.description,
   },
