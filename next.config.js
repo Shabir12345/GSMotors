@@ -17,10 +17,7 @@ const nextConfig = {
   webpack: (config, { isServer }) => {
     // Add chunk loading timeout and retry logic
     if (!isServer) {
-      config.output = {
-        ...config.output,
-        chunkLoadTimeout: 30000, // 30 seconds
-      };
+      config.output.chunkLoadTimeout = 30000; // 30 seconds
     }
 
     return config;
@@ -39,7 +36,7 @@ const nextConfig = {
     } : false,
   },
 
-  transpilePackages: ['swiper'],
+  transpilePackages: ['swiper', 'lucide-react', 'framer-motion'],
 
   images: {
     remotePatterns: [

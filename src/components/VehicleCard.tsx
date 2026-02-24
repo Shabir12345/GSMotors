@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { formatPrice, formatMileage, getStatusBadgeStyle } from '@/utils/formatters';
-import { Calendar, Gauge, Fuel, Cog, Palette, CarFront, ArrowRight, Zap, ShieldCheck } from 'lucide-react';
+import { Calendar, Gauge, Fuel, Cog, CarFront, ArrowRight, Zap, ShieldCheck } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 type VehicleCardProps = {
@@ -39,11 +39,12 @@ export default function VehicleCard({ vehicle, showPrice = true, priority = fals
                         >
                             <Image
                                 src={vehicle.photos[0].url}
-                                alt={vehicle.photos[0].altText || vehicle.title}
+                                alt={vehicle.photos.length > 0 ? (vehicle.photos[0].altText || vehicle.title) : vehicle.title}
                                 fill
                                 className="object-cover transition-opacity duration-500"
                                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                                 priority={priority}
+                                loading={priority ? undefined : 'lazy'}
                                 onError={() => setImageError(true)}
                             />
                         </motion.div>

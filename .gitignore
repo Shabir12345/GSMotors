@@ -58,3 +58,37 @@ logs
 /uploads
 /public/uploads
 
+# Debug and helper scripts (not needed in production)
+check-alpha.js
+check-photos.js
+compare-hashes.js
+debug-layout-chunk.js
+debug-url.js
+find-broken-photo.js
+fix-database-urls.js
+get-url.js
+hash.js
+inspect-logo.js
+list-vehicles.js
+make-transparent.js
+search-photos.js
+update-logo-file.js
+verify-final-logo.js
+verify-fix.js
+verify-url.js
+
+# Build output files
+build_output.txt
+seed_output*.txt
+db-error.log
+
+# Old backup files
+*.OLD_BACKUP
+
+# SQL migration scripts (keep in DB, not repo)
+ADD_CARFAX_COLUMN.sql
+ADD_VEHICLE_INTEREST_MIGRATION.sql
+
+# Temp logo file
+public/logo_original.png
+public/logo_current.png

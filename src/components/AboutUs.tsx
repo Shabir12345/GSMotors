@@ -57,11 +57,11 @@ export default function AboutUs() {
                                 src={siteConfig.contact.mapUrl}
                                 width="100%"
                                 height="100%"
-                                style={{ border: 0, filter: 'grayscale(100%) invert(92%) contrast(83%)' }}
+                                style={{ border: 0 }}
                                 allowFullScreen
                                 loading="lazy"
                                 referrerPolicy="no-referrer-when-downgrade"
-                                className="group-hover:filter-none transition-all duration-700"
+                                className="transition-all duration-700"
                             />
 
                             {/* Overlay Card - Hidden on very small screens or made more compact */}

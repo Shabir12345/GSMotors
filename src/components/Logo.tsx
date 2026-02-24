@@ -20,11 +20,8 @@ export default function Logo({ className, width, height, priority = true }: Logo
                     width={width || 600}
                     height={height || 150}
                     className={`object-contain transition-all duration-300 ${!isFixed ? 'h-[5.25em] w-auto' : ''}`}
-                    style={{
-                        filter: 'brightness(1.1) contrast(1.1)',
-                        mixBlendMode: 'screen'
-                    }}
                     priority={priority}
+                    unoptimized={true}
                 />
             </div>
         </div>

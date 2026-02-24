@@ -7,10 +7,10 @@ import InventoryGrid from '@/components/InventoryGrid';
 import DynamicHeroText from '@/components/DynamicHeroText';
 
 // Dynamically import below-the-fold components to reduce initial JS payload
-const FinancingSection = dynamic(() => import('@/components/FinancingSection'), { ssr: true });
-const TradeInSection = dynamic(() => import('@/components/TradeInSection'), { ssr: true });
-const AboutUs = dynamic(() => import('@/components/AboutUs'), { ssr: true });
-const Testimonials = dynamic(() => import('@/components/Testimonials'), { ssr: true });
+import FinancingSection from '@/components/FinancingSection';
+import TradeInSection from '@/components/TradeInSection';
+import AboutUs from '@/components/AboutUs';
+import Testimonials from '@/components/Testimonials';
 
 export const revalidate = 60; // Enable ISR, revalidate every 60 seconds
 

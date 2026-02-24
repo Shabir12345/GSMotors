@@ -30,11 +30,19 @@ export async function generateStaticParams() {
 
 async function getVehicle(slug: string) {
   try {
-    let baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    // Use VERCEL_URL during Vercel builds, NEXT_PUBLIC_APP_URL for production,
+    // or localhost for local development
+    const vercelUrl = process.env.VERCEL_URL;
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL;
 
-    // Ensure baseUrl has protocol
-    if (!baseUrl.startsWith('http://') && !baseUrl.startsWith('https://')) {
-      baseUrl = `https://${baseUrl}`;
+    let baseUrl: string;
+    if (vercelUrl) {
+      // Vercel automatically provides VERCEL_URL without protocol
+      baseUrl = `https://${vercelUrl}`;
+    } else if (appUrl) {
+      baseUrl = appUrl.startsWith('http') ? appUrl : `https://${appUrl}`;
+    } else {
+      baseUrl = 'http://localhost:3000';
     }
 
     const response = await fetch(`${baseUrl}/api/vehicles/${slug}`, {

@@ -47,11 +47,11 @@ export default function ContactPage() {
                                 src={siteConfig.contact.mapUrl}
                                 width="100%"
                                 height="100%"
-                                style={{ border: 0, filter: 'grayscale(100%) invert(92%) contrast(83%)' }}
+                                style={{ border: 0 }}
                                 allowFullScreen
                                 loading="lazy"
                                 referrerPolicy="no-referrer-when-downgrade"
-                                className="group-hover:filter-none transition-all duration-1000"
+                                className="transition-all duration-1000"
                             />
                             <div className="absolute inset-x-0 bottom-0 p-6 bg-gradient-to-t from-brand-dark to-transparent pointer-events-none">
                                 <p className="text-gray-400 text-xs font-bold uppercase tracking-widest">{siteConfig.contact.address}</p>
