@@ -59,8 +59,8 @@ export default function Navbar() {
                 <div className="container mx-auto px-4 md:px-6">
                     <nav className="flex items-center justify-between">
                         {/* Logo */}
-                        <Link href="/" prefetch={false} className="relative z-50 transition-all hover:scale-105 flex items-center">
-                            <div className="h-14 md:h-20 flex items-center py-1 -translate-y-[4mm]">
+                        <Link href="/" prefetch={false} className="relative z-50 transition-all hover:scale-105 flex items-center shrink-0">
+                            <div className="h-14 md:h-20 flex items-center py-1">
                                 <Logo className="text-3xl md:text-4xl" />
                             </div>
                         </Link>

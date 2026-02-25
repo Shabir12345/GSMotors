@@ -13,9 +13,9 @@ export default function Logo({ className, width, height, priority = true }: Logo
 
     return (
         <div className={`inline-flex items-center ${className || ''}`} suppressHydrationWarning>
-            <div className="relative overflow-visible flex items-center">
+            <div className="relative overflow-visible flex items-center min-w-[120px]">
                 <Image
-                    src="/logo.png"
+                    src="/Logo.png"
                     alt="GSMotorsinc Logo"
                     width={width || 600}
                     height={height || 150}

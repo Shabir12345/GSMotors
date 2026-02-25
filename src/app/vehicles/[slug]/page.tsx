@@ -30,29 +30,18 @@ export async function generateStaticParams() {
 
 async function getVehicle(slug: string) {
   try {
-    // Use VERCEL_URL during Vercel builds, NEXT_PUBLIC_APP_URL for production,
-    // or localhost for local development
-    const vercelUrl = process.env.VERCEL_URL;
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL;
-
-    let baseUrl: string;
-    if (vercelUrl) {
-      // Vercel automatically provides VERCEL_URL without protocol
-      baseUrl = `https://${vercelUrl}`;
-    } else if (appUrl) {
-      baseUrl = appUrl.startsWith('http') ? appUrl : `https://${appUrl}`;
-    } else {
-      baseUrl = 'http://localhost:3000';
-    }
-
-    const response = await fetch(`${baseUrl}/api/vehicles/${slug}`, {
-      next: { revalidate: 60 },
+    const vehicle = await prisma.vehicle.findUnique({
+      where: { seoSlug: slug },
+      include: {
+        photos: {
+          orderBy: {
+            sortOrder: 'asc',
+          },
+        },
+        features: true,
+      },
     });
-
-    if (!response.ok) return null;
-
-    const data = await response.json();
-    return data.success ? data.data : null;
+    return vehicle;
   } catch (error) {
     console.error('Failed to fetch vehicle:', error);
     return null;
@@ -136,25 +125,8 @@ export default async function VehicleDetailPage({ params }: Props) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
 
-      <div className="min-h-screen bg-brand-dark">
-        {/* Header - Simple for mobile detail page */}
-        <header className="bg-brand-darker/90 backdrop-blur-xl border-b border-white/5 sticky top-0 z-40">
-          <div className="max-w-7xl mx-auto px-4">
-            <div className="flex justify-between items-center h-16 md:h-20">
-              <Link href="/" className="flex items-center -translate-y-[4mm]">
-                <Logo className="text-xl md:text-2xl" />
-              </Link>
-              <nav className="flex gap-4 md:gap-6">
-                <Link href="/" className="text-xs md:text-sm font-bold text-gray-400 hover:text-brand-accent transition-colors uppercase tracking-widest">
-                  Home
-                </Link>
-                <Link href="/inventory" className="text-xs md:text-sm font-bold text-gray-400 hover:text-brand-accent transition-colors uppercase tracking-widest">
-                  Inventory
-                </Link>
-              </nav>
-            </div>
-          </div>
-        </header>
+      <div className="min-h-screen bg-brand-dark pt-20 md:pt-28">
+
 
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-10">
           {/* Breadcrumb - Better mobile spacing */}
@@ -216,7 +188,11 @@ export default async function VehicleDetailPage({ params }: Props) {
             {/* Left Column - Image Gallery (Full Width on Mobile, 2/3 on Desktop) */}
             <div className="lg:col-span-2 space-y-6">
               <VehicleImageGallery
-                photos={vehicle.photos || []}
+                photos={(vehicle.photos || []).map((p: any) => ({
+                  id: p.id,
+                  url: p.url,
+                  altText: p.altText || undefined
+                }))}
                 vehicleTitle={vehicle.title}
               />
 

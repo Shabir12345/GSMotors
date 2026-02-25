@@ -36,7 +36,7 @@ const nextConfig = {
     } : false,
   },
 
-  transpilePackages: ['swiper', 'lucide-react', 'framer-motion'],
+  transpilePackages: ['swiper', 'lucide-react', 'framer-motion', 'tailwind-merge', 'clsx'],
 
   images: {
     remotePatterns: [
