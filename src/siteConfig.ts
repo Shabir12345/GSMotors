@@ -1,7 +1,8 @@
 export const siteConfig = {
   name: 'GSMotorsinc',
-  description: 'Experience the pinnacle of automotive excellence. Hand-picked luxury vehicles, tailored for your journey.',
-  url: process.env.NEXT_PUBLIC_APP_URL || 'https://gs-motors.vercel.app',
+  description: 'Quality pre-owned vehicles at fair, transparent prices. Honest car buying without the games.',
+  // Production domain — always gsmotorsinc.com. Override with NEXT_PUBLIC_APP_URL for staging/preview.
+  url: process.env.NEXT_PUBLIC_APP_URL || 'https://gsmotorsinc.com',
   contact: {
     phone: '647-801-2475',
     email: 'concierge@gsmotorsinc.com',
@@ -10,18 +11,21 @@ export const siteConfig = {
     mapTitle: 'GSMotorsinc Showroom',
   },
   social: {
-    facebook: '#',
-    instagram: '#',
-    twitter: '#',
+    facebook: 'https://www.facebook.com/gsmotorsinc',
+    instagram: 'https://www.instagram.com/gsmotorsinc',
+    twitter: 'https://twitter.com/gsmotorsinc',
   },
   metadata: {
-    title: 'GSMotorsinc - Premium Pre-Owned Vehicles',
-    description: 'Experience the pinnacle of automotive excellence. Hand-picked luxury vehicles, tailored for your journey.',
-    keywords: 'luxury cars, exotics, premium auto sales, mercedes, bmw, porsche, used luxury cars',
+    title: 'GSMotorsinc | Used Cars Newcastle ON — Durham Region & GTA',
+    description: 'Quality pre-owned vehicles at fair, transparent prices. Serving Newcastle, Bowmanville, Oshawa, Whitby, Ajax & the GTA. Financing for all credit types.',
+    keywords: 'used cars Newcastle ON, used car dealer Durham Region, pre-owned vehicles Ontario, used cars Bowmanville, used cars Oshawa, buy used car GTA, car financing Ontario',
+    ogImage: '/og-image.jpg',
   },
   integrations: {
     googleAnalyticsId: process.env.NEXT_PUBLIC_GA_ID || '',
     googleTagManagerId: process.env.NEXT_PUBLIC_GTM_ID || '',
     facebookPixelId: process.env.NEXT_PUBLIC_FACEBOOK_PIXEL_ID || '',
+    // Paste your Google Search Console verification code here once you verify ownership
+    googleSiteVerification: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || '',
   }
 };

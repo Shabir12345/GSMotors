@@ -110,7 +110,7 @@ export default function TradeInForm() {
                                 value={formData.year}
                                 onChange={handleChange}
                                 required
-                                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent transition-colors"
+                                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-base text-white focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent transition-colors"
                                 placeholder="2018"
                             />
                         </div>
@@ -122,7 +122,7 @@ export default function TradeInForm() {
                                 value={formData.make}
                                 onChange={handleChange}
                                 required
-                                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent transition-colors"
+                                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-base text-white focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent transition-colors"
                                 placeholder="BMW"
                             />
                         </div>
@@ -134,7 +134,7 @@ export default function TradeInForm() {
                                 value={formData.model}
                                 onChange={handleChange}
                                 required
-                                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent transition-colors"
+                                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-base text-white focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent transition-colors"
                                 placeholder="X5"
                             />
                         </div>
@@ -148,7 +148,7 @@ export default function TradeInForm() {
                                 name="vin"
                                 value={formData.vin}
                                 onChange={handleChange}
-                                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent transition-colors"
+                                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-base text-white focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent transition-colors"
                                 placeholder="17-digit VIN"
                             />
                         </div>
@@ -160,7 +160,7 @@ export default function TradeInForm() {
                                 value={formData.mileage}
                                 onChange={handleChange}
                                 required
-                                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent transition-colors"
+                                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-base text-white focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent transition-colors"
                                 placeholder="45,000"
                             />
                         </div>
@@ -173,7 +173,7 @@ export default function TradeInForm() {
                             value={formData.condition}
                             onChange={handleChange}
                             required
-                            className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent cursor-pointer"
+                            className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-base text-white focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent cursor-pointer"
                         >
                             <option value="" className="bg-gray-900 text-gray-400">Select Condition</option>
                             <option value="Excellent" className="bg-gray-900">Excellent (Looks New)</option>
@@ -195,7 +195,7 @@ export default function TradeInForm() {
                                 value={formData.firstName}
                                 onChange={handleChange}
                                 required
-                                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent transition-colors"
+                                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-base text-white focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent transition-colors"
                             />
                         </div>
                         <div>
@@ -206,7 +206,7 @@ export default function TradeInForm() {
                                 value={formData.lastName}
                                 onChange={handleChange}
                                 required
-                                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent transition-colors"
+                                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-base text-white focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent transition-colors"
                             />
                         </div>
                     </div>
@@ -220,7 +220,7 @@ export default function TradeInForm() {
                                 value={formData.email}
                                 onChange={handleChange}
                                 required
-                                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent transition-colors"
+                                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-base text-white focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent transition-colors"
                             />
                         </div>
                         <div>
@@ -231,7 +231,7 @@ export default function TradeInForm() {
                                 value={formData.phone}
                                 onChange={handleChange}
                                 required
-                                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent transition-colors"
+                                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-base text-white focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent transition-colors"
                             />
                         </div>
                     </div>

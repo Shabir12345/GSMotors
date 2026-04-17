@@ -69,7 +69,6 @@
 
   h2 {
     font-size: 2rem;
-    /* Reduced from 2.25rem */
     line-height: 1.2;
     letter-spacing: -0.025em;
   }
@@ -77,7 +76,7 @@
   @media (min-width: 768px) {
     h2 {
       font-size: 3rem;
-      line-height: 2.5rem;
+      line-height: 1.15;
     }
   }
 }

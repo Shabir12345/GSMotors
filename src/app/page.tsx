@@ -71,6 +71,34 @@ export default async function HomePage() {
 
   return (
     <main className="bg-black min-h-screen">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'AutoDealer',
+            name: 'GSMotorsinc',
+            url: 'https://gsmotorsinc.com',
+            telephone: '647-801-2475',
+            email: 'concierge@gsmotorsinc.com',
+            address: {
+              '@type': 'PostalAddress',
+              streetAddress: '3400 ON-115',
+              addressLocality: 'Newcastle',
+              addressRegion: 'ON',
+              postalCode: 'L1B 0R6',
+              addressCountry: 'CA',
+            },
+            geo: { '@type': 'GeoCoordinates', latitude: 43.942, longitude: -78.603 },
+            openingHours: ['Mo-Fr 09:00-18:00', 'Sa 09:00-17:00'],
+            priceRange: '$$',
+            sameAs: [
+              siteConfig.social.facebook,
+              siteConfig.social.instagram,
+            ],
+          }),
+        }}
+      />
       {/* Hero Section */}
       <section id="home" className="relative p-0 m-0 border-0 outline-0">
         <HeroScrollAnimation
@@ -93,8 +121,8 @@ export default async function HomePage() {
         <InventoryGrid
           vehicles={featuredVehicles}
           loading={false}
-          title="Featured Collection"
-          subtitle="Hand-picked for quality and performance. These vehicles represent the best of our current stock."
+          title="Quality Vehicles for Every Budget"
+          subtitle="Affordable pre-owned cars with certified inspections. Find reliable transportation at prices that make sense."
         />
         <div className="text-center pb-12 bg-brand-dark">
           <Link
@@ -111,24 +139,39 @@ export default async function HomePage() {
         <div className="container mx-auto px-4 relative z-10">
           <div className="text-center mb-12 md:mb-16">
             <h2 className="text-3xl md:text-5xl font-bold text-white mb-4 md:mb-6 font-display tracking-tight">
-              Exclusive <span className="text-brand-accent">Inventory</span>
+              Multiple Ways to <span className="text-brand-accent">Find Your Car</span>
             </h2>
             <p className="text-gray-400 max-w-2xl mx-auto text-base md:text-lg px-4">
-              Explore our specialized collections tailored for specific buyer needs. From wholesale dealer units to international export solutions.
+              Whether you're looking for a certified pre-owned bargain, seeking export options, or exploring project vehicles, we have inventory to match every need and budget.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
+            {/* As Is Card */}
+            <Link href="/as-is-vehicles" className="group relative h-[300px] md:h-[400px] rounded-3xl overflow-hidden border border-white/5 hover:border-brand-accent/50 transition-all duration-500 shadow-2xl shadow-brand-accent/5">
+              <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?q=80&w=2766&auto=format&fit=crop')] bg-cover bg-center group-hover:scale-110 transition-transform duration-1000"></div>
+              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent"></div>
+              <div className="absolute inset-0 p-6 md:p-8 flex flex-col justify-end">
+                <span className="text-brand-accent text-[10px] font-black uppercase tracking-[0.2em] mb-2">Budget Options</span>
+                <h3 className="text-2xl md:text-3xl font-bold text-white mb-2 md:mb-3">As-Is Specials</h3>
+                <p className="text-gray-300 text-sm md:text-base transform group-hover:-translate-y-2 transition-transform line-clamp-2">Deep discounts on project cars and vehicles needing work. Perfect for value hunters and DIY mechanics.</p>
+                <div className="mt-4 flex items-center text-white/50 group-hover:text-brand-accent font-bold transition-colors text-xs md:text-sm">
+                  <span>See Specials</span>
+                  <svg className="w-5 h-5 ml-2 group-hover:translate-x-2 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
+                </div>
+              </div>
+            </Link>
+
             {/* Wholesale Card */}
             <Link href="/wholesale" className="group relative h-[300px] md:h-[400px] rounded-3xl overflow-hidden border border-white/5 hover:border-brand-accent/50 transition-all duration-500 shadow-2xl shadow-brand-accent/5">
               <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1550355291-bbee04a92027?q=80&w=2672&auto=format&fit=crop')] bg-cover bg-center group-hover:scale-110 transition-transform duration-1000"></div>
               <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent"></div>
               <div className="absolute inset-0 p-6 md:p-8 flex flex-col justify-end">
-                <span className="text-brand-accent text-[10px] font-black uppercase tracking-[0.2em] mb-2">B2B Network</span>
+                <span className="text-brand-accent text-[10px] font-black uppercase tracking-[0.2em] mb-2">Dealer Network</span>
                 <h3 className="text-2xl md:text-3xl font-bold text-white mb-2 md:mb-3">Wholesale Direct</h3>
-                <p className="text-gray-300 text-sm md:text-base transform group-hover:-translate-y-2 transition-transform line-clamp-2">Exclusive dealer inventory with competitive transfer rates.</p>
+                <p className="text-gray-300 text-sm md:text-base transform group-hover:-translate-y-2 transition-transform line-clamp-2">Inventory for licensed dealers. Competitive pricing and flexible terms for bulk purchases.</p>
                 <div className="mt-4 flex items-center text-white/50 group-hover:text-brand-accent font-bold transition-colors text-xs md:text-sm">
-                  <span>Enter Portal</span>
+                  <span>Dealer Portal</span>
                   <svg className="w-5 h-5 ml-2 group-hover:translate-x-2 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
                 </div>
               </div>
@@ -141,24 +184,9 @@ export default async function HomePage() {
               <div className="absolute inset-0 p-6 md:p-8 flex flex-col justify-end">
                 <span className="text-indigo-400 text-[10px] font-black uppercase tracking-[0.2em] mb-2">Global Logistics</span>
                 <h3 className="text-2xl md:text-3xl font-bold text-white mb-2 md:mb-3">International Export</h3>
-                <p className="text-gray-300 text-sm md:text-base transform group-hover:-translate-y-2 transition-transform line-clamp-2">Worldwide shipping solutions and export-ready inventory.</p>
+                <p className="text-gray-300 text-sm md:text-base transform group-hover:-translate-y-2 transition-transform line-clamp-2">Shipping solutions for buyers anywhere. Worldwide exports with transparent logistics and documentation.</p>
                 <div className="mt-4 flex items-center text-white/50 group-hover:text-indigo-400 font-bold transition-colors text-xs md:text-sm">
                   <span>View Units</span>
-                  <svg className="w-5 h-5 ml-2 group-hover:translate-x-2 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
-                </div>
-              </div>
-            </Link>
-
-            {/* As Is Card */}
-            <Link href="/as-is" className="group relative h-[300px] md:h-[400px] rounded-3xl overflow-hidden border border-white/5 hover:border-amber-500/50 transition-all duration-500 shadow-2xl shadow-amber-500/5">
-              <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?q=80&w=2766&auto=format&fit=crop')] bg-cover bg-center group-hover:scale-110 transition-transform duration-1000"></div>
-              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent"></div>
-              <div className="absolute inset-0 p-6 md:p-8 flex flex-col justify-end">
-                <span className="text-amber-500 text-[10px] font-black uppercase tracking-[0.2em] mb-2">Value Collection</span>
-                <h3 className="text-2xl md:text-3xl font-bold text-white mb-2 md:mb-3">'As Is' Specials</h3>
-                <p className="text-gray-300 text-sm md:text-base transform group-hover:-translate-y-2 transition-transform line-clamp-2">Budget-friendly project units and high-value project cars.</p>
-                <div className="mt-4 flex items-center text-white/50 group-hover:text-amber-500 font-bold transition-colors text-xs md:text-sm">
-                  <span>Explore Sales</span>
                   <svg className="w-5 h-5 ml-2 group-hover:translate-x-2 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
                 </div>
               </div>
@@ -223,10 +251,10 @@ export default async function HomePage() {
         <div className="absolute inset-0 bg-brand-accent/10"></div>
         <div className="container mx-auto px-4 relative z-10 text-center">
           <h2 className="text-4xl md:text-6xl font-bold text-white mb-8 tracking-tight">
-            Ready to Find Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-accent to-brand-highlight">Dream Car?</span>
+            Quality Used Cars in <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-accent to-brand-highlight">Toronto</span>
           </h2>
           <p className="text-xl text-gray-300 max-w-2xl mx-auto mb-10">
-            Visit our showroom today or browse our inventory online. Your perfect drive is waiting.
+            Affordable, reliable pre-owned vehicles with transparent pricing and honest service. Find your next car today.
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-6">
             <Link

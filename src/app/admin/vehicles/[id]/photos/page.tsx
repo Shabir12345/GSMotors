@@ -66,12 +66,7 @@ export default function VehiclePhotosPage() {
   const [deletingAll, setDeletingAll] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
-  useEffect(() => {
-    fetchVehicle();
-    fetchPhotos();
-  }, [vehicleId]);
-
-  const fetchVehicle = async () => {
+  const fetchVehicle = useCallback(async () => {
     try {
       const token = localStorage.getItem('authToken');
       const response = await fetch(`/api/admin/vehicles/${vehicleId}`, {
@@ -84,9 +79,9 @@ export default function VehiclePhotosPage() {
     } catch (error) {
       console.error('Failed to fetch vehicle:', error);
     }
-  };
+  }, [vehicleId]);
 
-  const fetchPhotos = async () => {
+  const fetchPhotos = useCallback(async () => {
     try {
       const token = localStorage.getItem('authToken');
       const response = await fetch(`/api/admin/photos?vehicleId=${vehicleId}`, {
@@ -101,7 +96,12 @@ export default function VehiclePhotosPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [vehicleId]);
+
+  useEffect(() => {
+    fetchVehicle();
+    fetchPhotos();
+  }, [fetchVehicle, fetchPhotos]);
 
   const movePhoto = useCallback((dragIndex: number, hoverIndex: number) => {
     setPhotos((prevPhotos) => {

@@ -1,7 +1,6 @@
 'use client';
 
-// Public Inventory Page - Elite Collection Experience
-export const dynamic = 'force-dynamic';
+// Public Inventory Page
 
 import { useState, useEffect, useCallback, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -20,6 +19,7 @@ import VehicleGrid from '@/components/VehicleGrid';
 import { useVehicleFilters } from '@/hooks/useVehicleFilters';
 import FilterSidebar from '@/components/inventory/FilterSidebar';
 import Select from '@/components/Select';
+import Breadcrumb from '@/components/Breadcrumb';
 import { cn } from '@/lib/utils';
 
 function InventoryContent() {
@@ -136,12 +136,21 @@ function InventoryContent() {
   return (
     <div className="min-h-screen bg-[#050505] text-white selection:bg-brand-accent/30 selection:text-white">
       {/* Background Ambience */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0 hidden md:block">
         <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-brand-accent/5 blur-[120px] rounded-full animate-pulse" />
         <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-500/5 blur-[120px] rounded-full" />
       </div>
 
       <div className="relative z-10 max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-12 py-12 lg:py-24">
+        {/* Breadcrumb */}
+        <div className="mb-8">
+          <Breadcrumb 
+            items={[
+              { name: 'Home', href: '/' },
+              { name: 'All Vehicles', href: '/inventory' }
+            ]}
+          />
+        </div>
 
         {/* Hero Section */}
         <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-12 mb-20 px-4">
@@ -153,15 +162,14 @@ function InventoryContent() {
           >
             <div className="flex items-center gap-3 text-brand-accent font-black text-xs uppercase tracking-[0.4em]">
               <div className="w-12 h-[2px] bg-brand-accent rounded-full" />
-              Elite Inventory
-              <span className="text-white/20 ml-2">GSM-001</span>
+              All Vehicles
             </div>
             <h1 className="text-6xl sm:text-8xl font-black tracking-tighter leading-[0.85] uppercase">
-              Curated <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-white/80 to-white/20">Masterpieces</span>
+              Quality <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-white/80 to-white/20">Pre-Owned</span>
             </h1>
             <p className="text-gray-500 text-lg max-w-xl font-medium leading-relaxed">
-              Explore our hand-picked selection of automotive excellence, where performance meets unparalleled luxury.
+              Browse our full selection of quality pre-owned vehicles. Reliable, inspected, and fairly priced.
             </p>
           </motion.div>
 
@@ -246,7 +254,7 @@ function InventoryContent() {
                     </div>
                     <div className="space-y-4">
                       <h2 className="text-4xl font-black text-white uppercase tracking-tighter">Zero Matches</h2>
-                      <p className="text-gray-500 max-w-sm mx-auto text-lg">Our scouts are always searching. Try clearing your refinements or consult an advisor.</p>
+                      <p className="text-gray-500 max-w-sm mx-auto text-lg">No vehicles match your current filters. Try adjusting your search criteria.</p>
                     </div>
                   </div>
                   <button
@@ -283,7 +291,7 @@ function InventoryContent() {
             >
               <div className="flex items-center justify-between mb-12 pb-6 border-b border-white/5">
                 <div className="flex flex-col">
-                  <span className="text-[10px] font-black text-brand-accent uppercase tracking-[0.3em]">Refinement Hub</span>
+                  <span className="text-[10px] font-black text-brand-accent uppercase tracking-[0.3em]">Filter Options</span>
                   <h2 className="text-xl font-black uppercase tracking-tight">Active Filters</h2>
                 </div>
                 <button
@@ -331,7 +339,7 @@ export default function InventoryPage() {
           <div className="w-16 h-16 border-[3px] border-brand-accent/10 border-t-brand-accent rounded-full animate-spin" />
           <div className="absolute inset-0 bg-brand-accent/20 blur-2xl animate-pulse" />
         </div>
-        <div className="text-[10px] font-black text-white uppercase tracking-[0.4em] animate-pulse">Initializing Collection...</div>
+        <div className="text-[10px] font-black text-white uppercase tracking-[0.4em] animate-pulse">Loading Inventory...</div>
       </div>
     }>
       <InventoryContent />

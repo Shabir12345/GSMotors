@@ -1,5 +1,5 @@
 import React from 'react';
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Outfit } from 'next/font/google';
 import Script from 'next/script';
 import { Analytics } from '@vercel/analytics/react';
@@ -15,26 +15,53 @@ const outfit = Outfit({
   weight: ['400', '500', '600', '700'],
 });
 
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+  themeColor: '#0A0A0B',
+};
+
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://gs-motors.vercel.app'),
-  title: siteConfig.metadata.title,
+  metadataBase: new URL(siteConfig.url),
+  title: {
+    default: siteConfig.metadata.title,
+    template: '%s | GSMotorsinc',
+  },
   description: siteConfig.metadata.description,
   keywords: siteConfig.metadata.keywords,
   authors: [{ name: siteConfig.name }],
-  robots: 'index, follow',
+  robots: { index: true, follow: true, googleBot: { index: true, follow: true } },
+  alternates: {
+    canonical: siteConfig.url,
+  },
   openGraph: {
     type: 'website',
-    locale: 'en_US',
+    locale: 'en_CA',
     url: siteConfig.url,
     siteName: siteConfig.name,
     title: siteConfig.metadata.title,
     description: siteConfig.metadata.description,
+    images: [
+      {
+        url: siteConfig.metadata.ogImage,
+        width: 1200,
+        height: 630,
+        alt: 'GSMotorsinc — Quality Used Cars in Newcastle, ON',
+      },
+    ],
   },
   twitter: {
     card: 'summary_large_image',
     title: siteConfig.metadata.title,
     description: siteConfig.metadata.description,
+    images: [siteConfig.metadata.ogImage],
   },
+  ...(siteConfig.integrations.googleSiteVerification && {
+    verification: {
+      google: siteConfig.integrations.googleSiteVerification,
+    },
+  }),
 };
 
 export default function RootLayout({

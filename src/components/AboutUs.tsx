@@ -16,16 +16,16 @@ export default function AboutUs() {
                         <div>
                             <span className="text-brand-accent font-bold tracking-wider uppercase text-[10px] md:text-sm mb-2 block">Our Story</span>
                             <h2 className="text-3xl md:text-5xl font-bold text-white leading-tight mb-4 md:mb-6">
-                                Redefining the <br />
+                                Your Trusted <br />
                                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-accent to-white">
-                                    Luxury Experience.
+                                    Used Car Dealer.
                                 </span>
                             </h2>
                             <p className="text-gray-400 text-base md:text-lg leading-relaxed mb-4 md:mb-6">
-                                At {siteConfig.name}, we believe that buying a luxury vehicle should be as exceptional as the car itself. Established with a passion for automotive excellence, we curate only the finest pre-owned vehicles, ensuring that every car in our showroom meets the highest standards of quality and performance.
+                                At {siteConfig.name}, we believe buying a used car should be straightforward and stress-free. Every vehicle in our lot is inspected before it goes on sale — no hidden surprises, no pressure tactics, just honest deals.
                             </p>
                             <p className="text-gray-400 text-base md:text-lg leading-relaxed">
-                                Our team of dedicated professionals is committed to providing a transparent, personalized, and stress-free experience. From our meticulously inspected inventory to our bespoke financing solutions, we are here to help you find the perfect vehicle that matches your lifestyle.
+                                Our team is here to help you find the right car for your budget and lifestyle. From flexible financing options to fair trade-in valuations, we handle everything so you can drive away with confidence.
                             </p>
                         </div>
 

@@ -109,7 +109,7 @@ export default function FilterSidebar({
               value={filters.search || ''}
               onChange={(e) => setFilter('search', e.target.value)}
               placeholder="Search by name..."
-              className="w-full bg-white/[0.03] border border-white/5 rounded-2xl py-4 pl-4 pr-4 text-sm text-white placeholder-gray-600 focus:ring-1 focus:ring-brand-accent/50 focus:border-brand-accent/50 transition-all group-hover:bg-white/[0.05]"
+              className="w-full bg-white/[0.03] border border-white/5 rounded-2xl py-4 pl-4 pr-4 text-base text-white placeholder-gray-600 focus:ring-1 focus:ring-brand-accent/50 focus:border-brand-accent/50 transition-all group-hover:bg-white/[0.05]"
             />
           </div>
         </div>
@@ -151,7 +151,7 @@ export default function FilterSidebar({
                 value={filters.minPrice}
                 onChange={(e) => setFilter('minPrice', e.target.value)}
                 placeholder="Min"
-                className="w-full bg-white/[0.03] border border-white/5 rounded-2xl py-4 px-4 text-sm text-white placeholder-gray-600 focus:ring-1 focus:ring-brand-accent/50 transition-all group-hover:bg-white/[0.05]"
+                className="w-full bg-white/[0.03] border border-white/5 rounded-2xl py-4 px-4 text-base text-white placeholder-gray-600 focus:ring-1 focus:ring-brand-accent/50 transition-all group-hover:bg-white/[0.05]"
               />
             </div>
             <div className="relative group">
@@ -160,7 +160,7 @@ export default function FilterSidebar({
                 value={filters.maxPrice}
                 onChange={(e) => setFilter('maxPrice', e.target.value)}
                 placeholder="Max"
-                className="w-full bg-white/[0.03] border border-white/5 rounded-2xl py-4 px-4 text-sm text-white placeholder-gray-600 focus:ring-1 focus:ring-brand-accent/50 transition-all group-hover:bg-white/[0.05]"
+                className="w-full bg-white/[0.03] border border-white/5 rounded-2xl py-4 px-4 text-base text-white placeholder-gray-600 focus:ring-1 focus:ring-brand-accent/50 transition-all group-hover:bg-white/[0.05]"
               />
             </div>
           </div>
@@ -178,7 +178,7 @@ export default function FilterSidebar({
               value={filters.year}
               onChange={(e) => setFilter('year', e.target.value)}
               placeholder="From"
-              className="w-full bg-white/[0.03] border border-white/5 rounded-2xl py-4 px-4 text-sm text-white placeholder-gray-600 focus:ring-1 focus:ring-brand-accent/50 transition-all"
+              className="w-full bg-white/[0.03] border border-white/5 rounded-2xl py-4 px-4 text-base text-white placeholder-gray-600 focus:ring-1 focus:ring-brand-accent/50 transition-all"
             />
           </div>
           <div className="space-y-3">
@@ -192,7 +192,7 @@ export default function FilterSidebar({
                 value={filters.maxMileage}
                 onChange={(e) => setFilter('maxMileage', e.target.value)}
                 placeholder="Max km"
-                className="w-full bg-white/[0.03] border border-white/5 rounded-2xl py-4 px-4 text-sm text-white placeholder-gray-600 focus:ring-1 focus:ring-brand-accent/50 transition-all"
+                className="w-full bg-white/[0.03] border border-white/5 rounded-2xl py-4 px-4 text-base text-white placeholder-gray-600 focus:ring-1 focus:ring-brand-accent/50 transition-all"
               />
             </div>
           </div>

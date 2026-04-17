@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import VehicleGrid from '@/components/VehicleGrid';
+import PageHero from '@/components/PageHero';
 
 export default function AsIsPage() {
     const [vehicles, setVehicles] = useState<any[]>([]);
@@ -26,36 +27,35 @@ export default function AsIsPage() {
     }, []);
 
     return (
-        <>
-            <title>Sold 'As Is' | GS Motors Inc</title>
-            <meta name="description" content="Browse our special selection of vehicles sold 'As Is'. Great value for projects and budget-conscious buyers." />
+        <main className="min-h-screen bg-brand-darker">
+            <PageHero
+                badge="Value Inventory"
+                badgeColor="amber"
+                title={<><span className="text-amber-400">'As-Is'</span> Specials</>}
+                subtitle="Our 'As-Is' inventory offers exceptional value. These vehicles are sold in their current condition — perfect for enthusiasts and budget-conscious buyers looking for the best deal."
+                breadcrumbs={[
+                    { name: 'Home', href: '/' },
+                    { name: 'As-Is Inventory', href: '/as-is' },
+                ]}
+            />
 
-            <main className="min-h-screen bg-brand-darker pt-24">
-                <section className="relative py-20 overflow-hidden">
-                    <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?q=80&w=2766&auto=format&fit=crop')] bg-cover bg-center opacity-10"></div>
-                    <div className="absolute inset-0 bg-gradient-to-b from-brand-darker/50 via-brand-darker/80 to-brand-darker"></div>
+            <section className="container mx-auto px-4 md:px-6 pb-24">
+                {/* Disclosure Banner */}
+                <div className="mb-8 flex items-start gap-3 bg-amber-500/10 border border-amber-500/20 rounded-2xl p-5">
+                    <svg className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <p className="text-amber-300/80 text-sm leading-relaxed">
+                        <strong className="text-amber-300">As-Is Notice:</strong> These vehicles are sold in their current condition without warranty. We encourage independent inspection before purchase. Contact us for full vehicle details.
+                    </p>
+                </div>
 
-                    <div className="container mx-auto px-4 relative z-10 text-center">
-                        <span className="inline-block px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-500 text-xs font-bold tracking-wider uppercase mb-4 animate-fade-in">
-                            Value Inventory
-                        </span>
-                        <h1 className="text-4xl md:text-6xl font-bold mb-6 font-display tracking-tight text-white animate-slide-up">
-                            'As Is' <span className="text-amber-500">Specials</span>
-                        </h1>
-                        <p className="text-gray-400 max-w-2xl mx-auto text-lg mb-8 animate-slide-up animation-delay-100">
-                            Our 'As Is' inventory offers exceptional value. These vehicles are sold in their current condition, perfect for enthusiasts and those looking for the best price.
-                        </p>
-                    </div>
-                </section>
-
-                <section className="container mx-auto px-4 pb-24">
-                    <VehicleGrid
-                        vehicles={vehicles}
-                        loading={loading}
-                        emptyMessage="No 'As Is' vehicles currently available."
-                    />
-                </section>
-            </main>
-        </>
+                <VehicleGrid
+                    vehicles={vehicles}
+                    loading={loading}
+                    emptyMessage="No 'As Is' vehicles currently available. Check back soon or browse our certified inventory."
+                />
+            </section>
+        </main>
     );
 }

@@ -88,7 +88,7 @@ export default function ContactForm() {
                         value={formData.name}
                         onChange={handleChange}
                         required
-                        className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent transition-colors"
+                        className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-base text-white focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent transition-colors"
                         placeholder="Your Name"
                     />
                 </div>
@@ -102,7 +102,7 @@ export default function ContactForm() {
                             value={formData.email}
                             onChange={handleChange}
                             required
-                            className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent transition-colors"
+                            className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-base text-white focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent transition-colors"
                             placeholder="email@example.com"
                         />
                     </div>
@@ -113,7 +113,7 @@ export default function ContactForm() {
                             name="phone"
                             value={formData.phone}
                             onChange={handleChange}
-                            className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent transition-colors"
+                            className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-base text-white focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent transition-colors"
                             placeholder="(647) 123-4567"
                         />
                     </div>
@@ -127,7 +127,7 @@ export default function ContactForm() {
                         onChange={handleChange}
                         required
                         rows={4}
-                        className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent transition-colors"
+                        className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-base text-white focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent transition-colors"
                         placeholder="How can we help you?"
                     />
                 </div>

@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import VehicleGrid from '@/components/VehicleGrid';
+import PageHero from '@/components/PageHero';
+import { siteConfig } from '@/siteConfig';
 
 export default function ExportPage() {
     const [vehicles, setVehicles] = useState<any[]>([]);
@@ -26,36 +28,44 @@ export default function ExportPage() {
     }, []);
 
     return (
-        <>
-            <title>Export Vehicles | GS Motors Inc</title>
-            <meta name="description" content="Worldwide vehicle export services. Premium inventory ready for international shipping." />
+        <main className="min-h-screen bg-brand-darker">
+            <PageHero
+                badge="Global Shipping"
+                badgeColor="indigo"
+                title={<>Export <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-brand-accent">Solutions</span></>}
+                subtitle="Seamless international vehicle logistics — quality pre-owned inventory available for global buyers. We handle documentation, shipping coordination, and compliance."
+                breadcrumbs={[
+                    { name: 'Home', href: '/' },
+                    { name: 'Export', href: '/export' },
+                ]}
+            />
 
-            <main className="min-h-screen bg-brand-darker pt-24">
-                <section className="relative py-20 overflow-hidden">
-                    <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?q=80&w=2669&auto=format&fit=crop')] bg-cover bg-center opacity-10"></div>
-                    <div className="absolute inset-0 bg-gradient-to-b from-brand-darker/50 via-brand-darker/80 to-brand-darker"></div>
+            <section className="container mx-auto px-4 md:px-6 pb-24">
+                {/* Services Strip */}
+                <div className="mb-10 grid sm:grid-cols-3 gap-4">
+                    {[
+                        { title: 'Global Shipping', desc: 'Coordination with international freight partners' },
+                        { title: 'Full Documentation', desc: 'Export paperwork, customs, and compliance handled' },
+                        { title: 'Direct Inquiries', desc: `Contact us at ${siteConfig.contact.phone}` },
+                    ].map((item) => (
+                        <div key={item.title} className="bg-white/[0.04] border border-white/[0.07] rounded-2xl p-5">
+                            <div className="w-8 h-8 rounded-lg bg-indigo-500/20 flex items-center justify-center mb-3">
+                                <svg className="w-4 h-4 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                </svg>
+                            </div>
+                            <h3 className="text-white font-bold text-sm mb-1">{item.title}</h3>
+                            <p className="text-gray-400 text-xs">{item.desc}</p>
+                        </div>
+                    ))}
+                </div>
 
-                    <div className="container mx-auto px-4 relative z-10 text-center">
-                        <span className="inline-block px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-bold tracking-wider uppercase mb-4 animate-fade-in">
-                            Global Shipping
-                        </span>
-                        <h1 className="text-4xl md:text-6xl font-bold mb-6 font-display tracking-tight text-white animate-slide-up">
-                            Export <span className="text-indigo-500">Solutions</span>
-                        </h1>
-                        <p className="text-gray-400 max-w-2xl mx-auto text-lg mb-8 animate-slide-up animation-delay-100">
-                            We provide seamless international vehicle logistics. Browse our premium selection specifically curated for global markets and export requirements.
-                        </p>
-                    </div>
-                </section>
-
-                <section className="container mx-auto px-4 pb-24">
-                    <VehicleGrid
-                        vehicles={vehicles}
-                        loading={loading}
-                        emptyMessage="No vehicles for export currently available."
-                    />
-                </section>
-            </main>
-        </>
+                <VehicleGrid
+                    vehicles={vehicles}
+                    loading={loading}
+                    emptyMessage="No export vehicles currently available. Contact us directly for custom export inquiries."
+                />
+            </section>
+        </main>
     );
 }

@@ -1,7 +1,7 @@
 'use client';
 
 // Edit Vehicle Page - Modern SaaS Dashboard Revamp
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import AdminLayout from '@/components/AdminLayout';
 import VehicleForm from '@/components/VehicleForm';
@@ -26,11 +26,7 @@ export default function EditVehiclePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    fetchVehicle();
-  }, [vehicleId]);
-
-  const fetchVehicle = async () => {
+  const fetchVehicle = useCallback(async () => {
     try {
       const token = localStorage.getItem('authToken');
       const response = await fetch(`/api/admin/vehicles/${vehicleId}`, {
@@ -50,7 +46,11 @@ export default function EditVehiclePage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [vehicleId]);
+
+  useEffect(() => {
+    fetchVehicle();
+  }, [fetchVehicle]);
 
   if (loading) {
     return (

@@ -127,6 +127,7 @@ export default function Select({
                         setIsOpen(false);
                       }}
                       role="option"
+                      aria-selected={value === ''}
                     >
                       Clear Selection
                     </li>

@@ -35,7 +35,7 @@ export default function DealerRegistrationForm({ onSuccess }: DealerRegistration
                         <input
                             type="text"
                             required
-                            className="w-full bg-gray-800/50 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent transition-all"
+                            className="w-full bg-gray-800/50 border border-white/10 rounded-lg px-4 py-3 text-base text-white placeholder-gray-500 focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent transition-all"
                             placeholder="Enter dealership name"
                         />
                     </div>
@@ -47,7 +47,7 @@ export default function DealerRegistrationForm({ onSuccess }: DealerRegistration
                         <input
                             type="text"
                             required
-                            className="w-full bg-gray-800/50 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent transition-all"
+                            className="w-full bg-gray-800/50 border border-white/10 rounded-lg px-4 py-3 text-base text-white placeholder-gray-500 focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent transition-all"
                             placeholder="License number"
                         />
                     </div>
@@ -59,7 +59,7 @@ export default function DealerRegistrationForm({ onSuccess }: DealerRegistration
                         <input
                             type="email"
                             required
-                            className="w-full bg-gray-800/50 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent transition-all"
+                            className="w-full bg-gray-800/50 border border-white/10 rounded-lg px-4 py-3 text-base text-white placeholder-gray-500 focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent transition-all"
                             placeholder="purchasing@dealership.com"
                         />
                     </div>

@@ -97,7 +97,7 @@ export default function FinancingForm() {
                             value={formData.firstName}
                             onChange={handleChange}
                             required
-                            className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent transition-colors"
+                            className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-base text-white placeholder-gray-500 focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent transition-colors"
                             placeholder="John"
                         />
                     </div>
@@ -109,7 +109,7 @@ export default function FinancingForm() {
                             value={formData.lastName}
                             onChange={handleChange}
                             required
-                            className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent transition-colors"
+                            className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-base text-white placeholder-gray-500 focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent transition-colors"
                             placeholder="Doe"
                         />
                     </div>
@@ -124,7 +124,7 @@ export default function FinancingForm() {
                             value={formData.email}
                             onChange={handleChange}
                             required
-                            className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent transition-colors"
+                            className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-base text-white placeholder-gray-500 focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent transition-colors"
                             placeholder="john@example.com"
                         />
                     </div>
@@ -136,7 +136,7 @@ export default function FinancingForm() {
                             value={formData.phone}
                             onChange={handleChange}
                             required
-                            className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent transition-colors"
+                            className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-base text-white placeholder-gray-500 focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent transition-colors"
                             placeholder="(647) 123-4567"
                         />
                     </div>
@@ -151,7 +151,7 @@ export default function FinancingForm() {
                             value={formData.annualIncome}
                             onChange={handleChange}
                             required
-                            className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent transition-colors"
+                            className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-base text-white placeholder-gray-500 focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent transition-colors"
                             placeholder="$100,000"
                         />
                     </div>
@@ -163,7 +163,7 @@ export default function FinancingForm() {
                             value={formData.downPayment}
                             onChange={handleChange}
                             required
-                            className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent transition-colors"
+                            className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-base text-white placeholder-gray-500 focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent transition-colors"
                             placeholder="$10,000"
                         />
                     </div>
@@ -175,7 +175,7 @@ export default function FinancingForm() {
                         name="creditScore"
                         value={formData.creditScore}
                         onChange={handleChange}
-                        className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent transition-colors cursor-pointer"
+                        className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-base text-white focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent transition-colors cursor-pointer"
                     >
                         <option value="" className="bg-gray-900 text-gray-400">Select Score Range</option>
                         <option value="excellent" className="bg-gray-900">Excellent (720+)</option>
