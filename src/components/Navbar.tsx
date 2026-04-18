@@ -51,6 +51,7 @@ const navLinks: NavItem[] = [
             { name: 'Guides', href: '/guides', desc: 'Car buying guides & tips' },
             { name: 'Blog', href: '/blog', desc: 'News & insights' },
             { name: 'FAQ', href: '/faq', desc: 'Common questions answered' },
+            { name: 'Careers', href: '/careers', desc: 'Join the GSMotorsinc team' },
         ],
     },
     { name: 'Contact', href: '/contact' },

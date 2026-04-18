@@ -39,6 +39,7 @@ export default function Footer() {
                 { name: 'Customer Reviews', href: '/testimonials' },
                 { name: 'Blog & Guides', href: '/blog' },
                 { name: 'FAQ', href: '/faq' },
+                { name: 'Careers', href: '/careers' },
             ],
         },
     ];

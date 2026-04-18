@@ -76,9 +76,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     url('/sell-trade/process', 0.7, 'monthly'),
     url('/sell-trade/trade-vs-sell', 0.7, 'monthly'),
 
+    // Financing — additional
+    url('/financing/lease-buyout', 0.75, 'monthly'),
+    url('/financing/bankruptcy', 0.75, 'monthly'),
+
+    // Sell / Trade — additional
+    url('/sell-trade/sell-your-car', 0.75, 'monthly'),
+
     // Guides
     url('/guides', 0.75, 'monthly'),
     url('/guides/buying-used-car-ontario', 0.75, 'monthly'),
+    url('/guides/first-time-buyer', 0.75, 'monthly'),
+    url('/guides/trade-in-guide', 0.75, 'monthly'),
 
     // Company pages
     url('/about-us', 0.7, 'monthly'),
@@ -87,5 +96,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     url('/testimonials', 0.65, 'monthly'),
     url('/blog', 0.7, 'weekly'),
     url('/faq', 0.65, 'monthly'),
+    url('/careers', 0.6, 'monthly'),
+    url('/privacy', 0.4, 'yearly'),
+    url('/terms', 0.4, 'yearly'),
   ];
 }
