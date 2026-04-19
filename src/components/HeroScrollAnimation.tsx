@@ -33,20 +33,29 @@ export default function HeroScrollAnimation({
     const rafIdRef = useRef<number | null>(null);
     const dimensionsRef = useRef({ height: 0, top: 0 });
     const lastRenderedFrameRef = useRef(-1);
-    const isScrollingRef = useRef(false);
-    const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-    // Context state — only updated when frame actually changes (not every RAF tick)
+    // Context state — updated only when frame actually changes (not every RAF tick)
     const [contextProgress, setContextProgress] = useState(0);
     const [contextFrame, setContextFrame] = useState(0);
 
-    // Detect mobile/low-power device
+    // Device feature detection
     const isMobileRef = useRef(false);
+    const prefersReducedMotionRef = useRef(false);
 
     useEffect(() => {
         setIsMounted(true);
-        isMobileRef.current = /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(navigator.userAgent)
-            || window.innerWidth < 768;
+        isMobileRef.current =
+            /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(navigator.userAgent) ||
+            window.innerWidth < 768;
+
+        // Check reduced-motion preference and listen for changes
+        const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+        prefersReducedMotionRef.current = mq.matches;
+        const onMotionPrefChange = (e: MediaQueryListEvent) => {
+            prefersReducedMotionRef.current = e.matches;
+        };
+        mq.addEventListener('change', onMotionPrefChange);
+        return () => mq.removeEventListener('change', onMotionPrefChange);
     }, []);
 
     // ── Image Loading ──────────────────────────────────────────────────────────
@@ -58,21 +67,34 @@ export default function HeroScrollAnimation({
         imagesRef.current = imageObjects;
         let loadedCount = 0;
 
+        // Use img.decode() — fires when image is loaded AND GPU-decoded (not just fetched)
         const loadFrame = (index: number): Promise<void> =>
             new Promise((resolve) => {
                 if (imageObjects[index]) { resolve(); return; }
                 const img = new Image();
-                // Use decode() for smoother rendering — avoids main-thread jank
-                img.decoding = 'async';
                 img.src = `${imagesPath}${index.toString().padStart(3, '0')}${imageExtension}`;
-                img.onload = () => {
-                    if (!active) return;
-                    imageObjects[index] = img;
-                    loadedCount++;
-                    setLoadingProgress(Math.round((loadedCount / frameCount) * 100));
+
+                // Safety timeout for each individual frame
+                const timeoutId = setTimeout(() => {
+                    console.warn(`Frame ${index} timed out loading`);
                     resolve();
-                };
-                img.onerror = () => { loadedCount++; resolve(); };
+                }, 5000);
+
+                img.decode()
+                    .then(() => {
+                        clearTimeout(timeoutId);
+                        if (!active) return;
+                        imageObjects[index] = img;
+                        loadedCount++;
+                        setLoadingProgress(Math.round((loadedCount / frameCount) * 100));
+                        resolve();
+                    })
+                    .catch(() => {
+                        clearTimeout(timeoutId);
+                        // Decode can fail for unsupported formats or network errors — always resolve
+                        loadedCount++;
+                        resolve();
+                    });
             });
 
         // Priority frames: every 5th frame for mobile, every 10th for desktop
@@ -107,7 +129,12 @@ export default function HeroScrollAnimation({
         };
 
         run();
-        return () => { active = false; };
+
+        return () => {
+            active = false;
+            // Free image element references to help GC on unmount / HMR
+            imagesRef.current = imagesRef.current.map(() => null);
+        };
     }, [frameCount, imagesPath, imageExtension, isMounted]);
 
     // ── Canvas Rendering ───────────────────────────────────────────────────────
@@ -182,9 +209,21 @@ export default function HeroScrollAnimation({
         if (!isLoaded) return;
 
         const isMobile = isMobileRef.current;
-        // On mobile, use direct snap instead of lerp (eliminates jank from slow lerp)
-        // On desktop, use a smooth lerp
-        const lerpFactor = isMobile ? 1 : 0.08;
+        const reducedMotion = prefersReducedMotionRef.current;
+
+        // ── Reduced-Motion: static render, no scroll binding ──────────────────
+        if (reducedMotion) {
+            updateCanvasSize();
+            // Show a representative frame (mid-sequence) so the canvas isn't black
+            renderFrame(Math.floor(frameCount * 0.45));
+            // Also expose a settled context state so children (DynamicHeroText) can show the CTA
+            setContextProgress(1);
+            setContextFrame(frameCount - 1);
+            return; // No RAF, no scroll listeners needed — static experience
+        }
+
+        // Slightly more responsive lerp than 0.08 — tracks fast scrolls better
+        const lerpFactor = isMobile ? 1 : 0.12;
 
         const animate = () => {
             const diff = targetProgressRef.current - currentProgressRef.current;
@@ -243,11 +282,10 @@ export default function HeroScrollAnimation({
         };
 
         // IntersectionObserver: start/stop RAF based on visibility
-        // FIX: Also re-draw the canvas when becoming visible again to prevent black screen
+        // Also re-draw the canvas when becoming visible again to prevent black screen
         const observer = new IntersectionObserver(
             (entries) => {
                 entries.forEach((entry) => {
-                    const wasVisible = isVisibleRef.current;
                     isVisibleRef.current = entry.isIntersecting;
 
                     if (entry.isIntersecting) {
@@ -267,8 +305,7 @@ export default function HeroScrollAnimation({
             },
             {
                 threshold: 0,
-                // Use rootMargin to trigger slightly before element is fully off-screen
-                // This ensures re-draw happens before user sees the canvas
+                // Trigger slightly before element is fully off-screen to warm up re-draw
                 rootMargin: '200px 0px 200px 0px'
             }
         );
@@ -303,11 +340,10 @@ export default function HeroScrollAnimation({
         };
     }, [isLoaded, frameCount, renderFrame, updateCanvasSize]);
 
-    // Also handle page visibility changes (tab switching, phone lock screen)
+    // Handle page visibility changes (tab switching, phone lock screen)
     useEffect(() => {
         const handleVisibilityChange = () => {
             if (document.visibilityState === 'visible' && isVisibleRef.current) {
-                // Re-sync and redraw canvas when page becomes visible again
                 updateCanvasSize();
                 lastRenderedFrameRef.current = -1;
                 renderFrame(currentProgressRef.current * (frameCount - 1));
@@ -330,8 +366,25 @@ export default function HeroScrollAnimation({
 
     return (
         <HeroScrollContext.Provider value={{ progress: contextProgress, currentFrame: contextFrame, isLoaded }}>
-            <div ref={containerRef} className="relative w-full" style={{ height: '200vh' }}>
-                <div className="sticky top-0 h-screen w-full overflow-hidden bg-black">
+            {/*
+              Container height drives the scroll distance.
+              200vh = 1 viewport of scrolling animates all 80 frames.
+              Reduced-motion users get a static 100vh section — no unnecessary scroll space.
+            */}
+            <div
+                ref={containerRef}
+                className="relative w-full"
+                style={{ height: prefersReducedMotionRef.current ? '100vh' : '200vh' }}
+            >
+                {/*
+                  sticky + CSS containment: layout style paint
+                  — tells the browser this subtree is isolated for repaints.
+                  Prevents unnecessary layout recalculation outside this div during scroll.
+                */}
+                <div
+                    className="sticky top-0 h-screen w-full overflow-hidden bg-black"
+                    style={{ contain: 'layout style paint' }}
+                >
                     {!isMounted ? (
                         <div className="absolute inset-0 flex items-center justify-center bg-black text-white">
                             <div className="text-center">
@@ -347,13 +400,15 @@ export default function HeroScrollAnimation({
                         </>
                     )}
 
-                    {/* Canvas background */}
+                    {/* Canvas background — role="img" so screen readers skip it gracefully */}
                     <canvas
                         ref={canvasRef}
+                        role="img"
+                        aria-label="Scroll-driven showcase of GSMotorsinc premium vehicles"
                         className="absolute inset-0 w-full h-full"
                         style={{
                             display: 'block',
-                            // Hardware-accelerated compositing — prevents canvas from disappearing
+                            // Hardware-accelerated compositing — prevents canvas from disappearing on scroll
                             transform: 'translateZ(0)',
                             backfaceVisibility: 'hidden',
                             WebkitBackfaceVisibility: 'hidden',

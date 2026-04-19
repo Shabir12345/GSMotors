@@ -1,5 +1,4 @@
 import React from 'react';
-// import Logo from './Logo';
 
 interface HeroLoadingPlaceholderProps {
   progress?: number;
@@ -7,7 +6,13 @@ interface HeroLoadingPlaceholderProps {
 
 export default function HeroLoadingPlaceholder({ progress = 0 }: HeroLoadingPlaceholderProps) {
   return (
-    <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-brand-darker via-brand-dark to-black overflow-hidden">
+    <div
+      className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-brand-darker via-brand-dark to-black overflow-hidden"
+      // role="status" + aria-live: screen readers will announce progress updates
+      role="status"
+      aria-live="polite"
+      aria-label={`Loading hero animation: ${progress}%`}
+    >
       {/* Animated gradient background */}
       <div className="absolute inset-0 opacity-30">
         <div
@@ -16,8 +21,8 @@ export default function HeroLoadingPlaceholder({ progress = 0 }: HeroLoadingPlac
         />
       </div>
 
-      {/* Loading content */}
-      <div className="relative z-10 text-center px-4 animate-in fade-in slide-in-from-bottom-4 duration-1000">
+      {/* Loading content — fade-in via standard Tailwind (no plugin required) */}
+      <div className="relative z-10 text-center px-4 animate-fade-in">
         <div className="mb-8">
           <h1 className="text-5xl md:text-7xl font-bold text-white mb-4">
             GSMotors<span className="text-brand-accent">inc</span>
@@ -28,7 +33,7 @@ export default function HeroLoadingPlaceholder({ progress = 0 }: HeroLoadingPlac
         </div>
 
         {/* Progress bar */}
-        <div className="w-80 max-w-full mx-auto">
+        <div className="w-80 max-w-full mx-auto" aria-hidden="true">
           <div className="h-1 bg-white/10 rounded-full overflow-hidden backdrop-blur-sm">
             <div
               className="h-full bg-gradient-to-r from-brand-accent to-brand-highlight transition-all duration-300 ease-out"

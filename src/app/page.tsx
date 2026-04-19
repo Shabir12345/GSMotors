@@ -2,11 +2,17 @@ import Link from 'next/link';
 import { siteConfig } from '@/siteConfig';
 
 import dynamic from 'next/dynamic';
-import HeroScrollAnimation from '@/components/HeroScrollAnimation';
-import InventoryGrid from '@/components/InventoryGrid';
-import DynamicHeroText from '@/components/DynamicHeroText';
+
+const HeroScrollAnimation = dynamic(() => import('@/components/HeroScrollAnimation'), {
+  ssr: false,
+});
+
+const DynamicHeroText = dynamic(() => import('@/components/DynamicHeroText'), {
+  ssr: false,
+});
 
 // Dynamically import below-the-fold components to reduce initial JS payload
+import InventoryGrid from '@/components/InventoryGrid';
 import FinancingSection from '@/components/FinancingSection';
 import TradeInSection from '@/components/TradeInSection';
 import AboutUs from '@/components/AboutUs';

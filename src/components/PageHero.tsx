@@ -8,7 +8,7 @@ interface BreadcrumbItem {
 
 interface PageHeroProps {
     badge?: string;
-    badgeColor?: 'blue' | 'green' | 'amber' | 'indigo' | 'purple' | 'gray';
+    badgeColor?: 'blue' | 'green' | 'amber' | 'indigo' | 'purple' | 'gray' | 'red';
     title: React.ReactNode;
     subtitle?: React.ReactNode;
     breadcrumbs?: BreadcrumbItem[];
@@ -23,6 +23,7 @@ const badgeColorMap = {
     indigo: 'bg-indigo-500/10 border-indigo-500/20 text-indigo-400',
     purple: 'bg-purple-500/10 border-purple-500/20 text-purple-400',
     gray: 'bg-white/5 border-white/10 text-gray-400',
+    red: 'bg-red-500/10 border-red-500/20 text-red-400',
 };
 
 export default function PageHero({

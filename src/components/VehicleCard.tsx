@@ -35,18 +35,20 @@ export default function VehicleCard({ vehicle, showPrice = true, priority = fals
                             initial={{ scale: 1 }}
                             animate={{ scale: isHovered ? 1.05 : 1 }}
                             transition={{ duration: 0.8, ease: "easeOut" }}
-                            className="h-full w-full"
+                            className="absolute inset-0 h-full w-full"
                         >
-                            <Image
-                                src={vehicle.photos[0].url}
-                                alt={vehicle.photos.length > 0 ? (vehicle.photos[0].altText || vehicle.title) : vehicle.title}
-                                fill
-                                className="object-cover transition-opacity duration-500"
-                                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                                priority={priority}
-                                loading={priority ? undefined : 'lazy'}
-                                onError={() => setImageError(true)}
-                            />
+                            <div className="relative h-full w-full">
+                                <Image
+                                    src={vehicle.photos[0].url}
+                                    alt={vehicle.photos.length > 0 ? (vehicle.photos[0].altText || vehicle.title) : vehicle.title}
+                                    fill
+                                    className="object-cover transition-opacity duration-500"
+                                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                    priority={priority}
+                                    loading={priority ? undefined : 'lazy'}
+                                    onError={() => setImageError(true)}
+                                />
+                            </div>
                         </motion.div>
                     ) : (
                         <div className="flex flex-col items-center justify-center h-full bg-gradient-to-br from-gray-900 to-black text-gray-700">

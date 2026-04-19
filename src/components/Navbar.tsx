@@ -133,7 +133,7 @@ export default function Navbar() {
                                             href={link.href}
                                             className={cn(
                                                 'flex items-center px-4 py-2 text-sm font-medium rounded-full transition-all duration-200',
-                                                pathname === link.href
+                                                (mounted && pathname === link.href)
                                                     ? 'text-white bg-white/10'
                                                     : 'text-gray-300 hover:text-white hover:bg-white/10'
                                             )}
@@ -153,7 +153,7 @@ export default function Navbar() {
                                                             href={item.href}
                                                             className={cn(
                                                                 'flex flex-col px-4 py-3 rounded-xl transition-all duration-150 group/item',
-                                                                pathname === item.href
+                                                                mounted && pathname === item.href
                                                                     ? 'bg-brand-accent/15 text-brand-accent'
                                                                     : 'hover:bg-white/5 text-gray-300 hover:text-white'
                                                             )}
@@ -181,7 +181,7 @@ export default function Navbar() {
                                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                                 </svg>
-                                {isAdmin ? 'Dashboard' : 'Portal'}
+                                {mounted && isAdmin ? 'Dashboard' : 'Portal'}
                             </Link>
                             <Link
                                 href="/contact"
@@ -317,7 +317,7 @@ export default function Navbar() {
                             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                             </svg>
-                            {isAdmin ? 'Admin Dashboard' : 'Admin Portal'}
+                            {mounted && isAdmin ? 'Admin Dashboard' : 'Admin Portal'}
                         </Link>
                     </div>
                 </div>

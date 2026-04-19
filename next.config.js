@@ -36,7 +36,7 @@ const nextConfig = {
     } : false,
   },
 
-  transpilePackages: ['swiper', 'lucide-react', 'framer-motion', 'tailwind-merge', 'clsx'],
+  transpilePackages: ['swiper', 'lucide-react', 'tailwind-merge', 'clsx'],
 
   images: {
     remotePatterns: [
@@ -143,6 +143,11 @@ const nextConfig = {
 
   async redirects() {
     return [
+      {
+        source: '/about',
+        destination: '/about-us',
+        permanent: true,
+      },
       {
         source: '/inventory.html',
         destination: '/inventory',
